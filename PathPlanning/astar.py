@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-class Planner():
+class PlannerAStar():
     def __init__(self,m):
         self.map = m
         self.initialize()

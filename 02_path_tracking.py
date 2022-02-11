@@ -16,10 +16,10 @@ if __name__ == "__main__":
     try:
         # Basic Kinematic Model 
         if args.simulator == "basic":
-            from Simulation.simulator_basic import Simulator
+            from Simulation.simulator_basic import SimulatorBasic as Simulator
             if args.controller == "pid":
                 from PathTracking.pid_basic import Controller
-            elif args.controller == "purepursuit":
+            elif args.controller == "pure_pursuit":
                 from PathTracking.pure_pursuit_basic import Controller
             elif args.controller == "stanley":
                 from PathTracking.stanley_basic import Controller
@@ -28,11 +28,11 @@ if __name__ == "__main__":
             else:
                 raise NameError("Unknown controller!!")
         # Diferential-Drive Kinematic Model
-        elif args.simulator == "ddv":
-            from Simulation.simulator_ddv import Simulator
+        elif args.simulator == "dd":
+            from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
             if args.controller == "pid":
                 from PathTracking.pid_basic import Controller
-            elif args.controller == "purepursuit":
+            elif args.controller == "pure_pursuit":
                 from PathTracking.pure_pursuit_basic import Controller
             elif args.controller == "stanley":
                 from PathTracking.stanley_basic import Controller
@@ -42,10 +42,10 @@ if __name__ == "__main__":
                 raise NameError("Unknown controller!!")
         # Bicycle Model
         elif args.simulator == "bicycle":
-            from Simulation.simulator_bicycle import Simulator
+            from Simulation.simulator_bicycle import SimulatorBicycle as Simulator
             if args.controller == "pid":
                 from PathTracking.pid_bicycle import Controller
-            elif args.controller == "purepursuit":
+            elif args.controller == "pure_pursuit":
                 from PathTracking.pure_pursuit_bicycle import Controller
             elif args.controller == "stanley":
                 from PathTracking.stanley_bicycle import Controller
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         print("\r", simulator, end="\t")
         # Control
         end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
-        if args.simulator == "basic" or args.simulator == "ddv":
+        if args.simulator == "basic" or args.simulator == "dd":
             # Longitude
             if end_dist > 10:
                 next_v = 20
@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 next_lw = np.rad2deg(next_lw)
                 next_rw = next_v / r + np.deg2rad(next_w)*simulator.l/r
                 next_rw = np.rad2deg(next_rw)
-                command = ControlCommand("ddv", next_lw, next_rw)
+                command = ControlCommand("dd", next_lw, next_rw)
         elif args.simulator == "bicycle":
             # Longitude (P Control)
             if end_dist > 40:

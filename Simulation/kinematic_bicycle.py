@@ -3,7 +3,7 @@ import sys
 sys.path.append("..")
 from Simulation.utils import State, ControlCommand
 
-class KinematicModel:
+class KinematicModelBicycle:
     def __init__(self,
             l = 30,     # distance between rear and front wheel
             dt = 0.1

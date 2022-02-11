@@ -2,23 +2,27 @@ import argparse
 import numpy as np
 import cv2
 from Simulation.utils import ControlCommand
+from Simulation.simulator_map_function import SimulatorMap
+#from Simulation.simulator_map_multi_inheritance import SimulatorMap
 
 # Basic Kinematic Model
-def run_basic():
+def run_basic(m):
+    from Simulation.simulator_basic import SimulatorBasic
     print("Control Hint:")
     print("[W] Increase velocity.")
     print("[S] Decrease velocity.")
     print("[A] Increase angular velocity. (Anti-Clockwise)")
     print("[D] Decrease angular velocity. (Clockwise)")
     print("====================")
-    simulator = Simulator()
-    simulator.init_state((300,300,0))
+    simulator = SimulatorMap(SimulatorBasic)(m)
+    #simulator = SimulatorMap(SimulatorBasic, m)
+    simulator.init_state((100,200,0))
     command = ControlCommand(args.simulator, None, None)
     while(True):
         print("\r", simulator, end="\t")
         img = np.ones((600,600,3))
         simulator.step(command)
-        img = simulator.render(img)
+        img = simulator.render()
         img = cv2.flip(img, 0)
         cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
@@ -37,21 +41,23 @@ def run_basic():
             command = ControlCommand(args.simulator, None, None)
 
 # Diferential-Drive Kinematic Model
-def run_ddv():
+def run_ddv(m):
+    from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
     print("Control Hint:")
     print("[A] Decrease angular velocity of left wheel.")
     print("[Q] Increase angular velocity of left wheel.")
     print("[D] Decrease angular velocity of right wheel.")
     print("[E] Increase angular velocity of right wheel.")
     print("====================")
-    simulator = Simulator()
-    simulator.init_state((300,300,0))
+    simulator = SimulatorMap(SimulatorDifferentialDrive)(m)
+    #simulator = SimulatorMap(SimulatorDifferentialDrive, m)
+    simulator.init_state((100,200,0))
     command = ControlCommand(args.simulator, None, None)
     while(True):
         print("\r", simulator, end="\t")
         img = np.ones((600,600,3))
         simulator.step(command)
-        img = simulator.render(img)
+        img = simulator.render()
         img = cv2.flip(img, 0)
         cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
@@ -70,21 +76,23 @@ def run_ddv():
             command = ControlCommand(args.simulator, None, None)
 
 # Bicycle Kinematic Model
-def run_bicycle():
+def run_bicycle(m):
     print("Control Hint:")
     print("[W] Increase velocity.")
     print("[S] Decrease velocity.")
     print("[A] Wheel turn anti-clockwise.")
     print("[D] Wheel turn clockwise.")
     print("====================")
-    simulator = Simulator()
-    simulator.init_state((300,300,0))
+    from Simulation.simulator_bicycle import SimulatorBicycle
+    simulator = SimulatorMap(SimulatorBicycle)(m)
+    #simulator = SimulatorMap(SimulatorBicycle, m)
+    simulator.init_state((100,200,0))
     command = ControlCommand(args.simulator, None, None)
     while(True):
         print("\r", simulator, end="\t")
         img = np.ones((600,600,3))
         simulator.step(command)
-        img = simulator.render(img)
+        img = simulator.render()
         img = cv2.flip(img, 0)
         cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
@@ -107,16 +115,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/wmr/bicycle")
     args = parser.parse_args()
+    # Read Map
+    img = cv2.flip(cv2.imread("Maps/map1.png"),0)
+    img[img>128] = 255
+    img[img<=128] = 0
+    m = np.asarray(img)
+    m = cv2.cvtColor(m, cv2.COLOR_RGB2GRAY)
+    m = m.astype(float) / 255.
     try:
         if args.simulator == "basic":
-            from Simulation.simulator_basic import SimulatorBasic as Simulator
-            run_basic()
+            run_basic(m)
         elif args.simulator == "dd":
-            from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
-            run_ddv()
+            run_ddv(m)
         elif args.simulator == "bicycle":
-            from Simulation.simulator_bicycle import SimulatorBicycle as Simulator
-            run_bicycle()
+            run_bicycle(m)
         else:
             raise NameError("Unknown simulator!!")
     except NameError:

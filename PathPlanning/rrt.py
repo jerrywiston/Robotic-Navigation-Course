@@ -4,7 +4,7 @@ import sys
 sys.path.append("..")
 import PathPlanning.utils as utils
 
-class Planner():
+class PlannerRRT():
     def __init__(self,m):
         self.map = m
 

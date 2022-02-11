@@ -3,11 +3,12 @@ import numpy as np
 import cv2
 
 sys.path.append("..")
+from Simulation.simulator import Simulator
 import Simulation.utils as utils
 from Simulation.utils import State, ControlCommand
-from Simulation.kinematic_bicycle import KinematicModel
+from Simulation.kinematic_bicycle import KinematicModelBicycle as KinematicModel
 
-class Simulator:
+class SimulatorBicycle(Simulator):
     def __init__(self,
             v_range = 20.0,
             a_range = 20.,
@@ -45,7 +46,7 @@ class Simulator:
 
         # Initialize State
         self.state = State()
-        self._compute_car_box()
+        self.car_box = utils.compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
         self.a = 0.0
         self.delta = 0.0
 
@@ -55,7 +56,7 @@ class Simulator:
         self.delta = 0.0
         self.record = []
 
-    def step(self, input_command):
+    def step(self, input_command, update_state=True):
         # Check Control Command
         self.a = input_command.a if input_command.a is not None else self.a
         self.delta = input_command.delta if input_command.delta is not None else self.delta
@@ -79,19 +80,14 @@ class Simulator:
         # Motion
         command = ControlCommand("bicycle", self.a, self.delta)
         state_next = self.model.step(self.state, command)
-        self.state = state_next
-        self.record.append((self.state.x, self.state.y, self.state.yaw))
-        self._compute_car_box()
+        if update_state:
+            self.state = state_next
+            self.record.append((self.state.x, self.state.y, self.state.yaw))
+            self.car_box = utils.compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
+        return state_next
 
     def __str__(self):
         return self.state.__str__() + ", a={:.4f}, delta={:.4f}".format(self.a, self.delta)
-
-    def _compute_car_box(self):
-        pts1 = utils.rot_pos(self.car_f,self.car_w/2,-self.state.yaw) + np.array((self.state.x, self.state.y))
-        pts2 = utils.rot_pos(self.car_f,-self.car_w/2,-self.state.yaw) + np.array((self.state.x, self.state.y))
-        pts3 = utils.rot_pos(-self.car_r,self.car_w/2,-self.state.yaw) + np.array((self.state.x, self.state.y))
-        pts4 = utils.rot_pos(-self.car_r,-self.car_w/2,-self.state.yaw) + np.array((self.state.x, self.state.y))
-        self.car_box = (pts1.astype(int), pts2.astype(int), pts3.astype(int), pts4.astype(int))
 
     def render(self, img=np.ones((600,600,3))):
         ########## Draw History ##########

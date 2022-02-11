@@ -3,7 +3,7 @@ import sys
 sys.path.append("..")
 from Simulation.utils import State, ControlCommand
 
-class KinematicModel:
+class KinematicModelDifferentialDrive:
     def __init__(self, r, l, dt):
         # Simulation delta time
         self.r = r

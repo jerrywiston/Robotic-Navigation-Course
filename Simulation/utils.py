@@ -36,7 +36,7 @@ class ControlCommand:
             if control_type == "basic":
                 self.v = command[0]
                 self.w = command[1]
-            elif control_type == "ddv":
+            elif control_type == "dd":
                 self.lw = command[0]
                 self.rw = command[1]
             elif control_type == "bicycle":
@@ -69,6 +69,15 @@ def draw_rectangle(img,x,y,u,v,phi,color=(0,0,0),size=1):
     cv2.line(img, tuple(pts3.astype(int).tolist()), tuple(pts4.astype(int).tolist()), color, size)
     cv2.line(img, tuple(pts2.astype(int).tolist()), tuple(pts4.astype(int).tolist()), color, size)
     return img
+
+def compute_car_box(car_w, car_f, car_r, pose):
+    x, y, yaw = pose[0], pose[1], pose[2]
+    pts1 = rot_pos(car_f,car_w/2,-yaw) + np.array((x, y))
+    pts2 = rot_pos(car_f,-car_w/2,-yaw) + np.array((x, y))
+    pts3 = rot_pos(-car_r,car_w/2,-yaw) + np.array((x, y))
+    pts4 = rot_pos(-car_r,-car_w/2,-yaw) + np.array((x, y))
+    car_box = (pts1.astype(int), pts2.astype(int), pts3.astype(int), pts4.astype(int))
+    return car_box
 
 # https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#Python
 def Bresenham(x0, x1, y0, y1):
