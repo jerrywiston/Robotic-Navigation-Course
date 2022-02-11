@@ -12,7 +12,7 @@ collision_count = 0
 init_pos = (100,200,0)
 pos = init_pos
 window_name = "Known Map Navigation Demo"
-car = None
+simulator = None
 controller = None
 planner = None
 args = None
@@ -32,8 +32,8 @@ def mouse_click(event, x, y, flags, param):
                 path = np.array(cubic_spline_2d(way_points, interval=4))
                 controller.set_path(path)
 
-def collision_detect(car, m):
-    p1,p2,p3,p4 = car.car_box
+def collision_detect(simulator, m):
+    p1,p2,p3,p4 = simulator.car_box
     l1 = Bresenham(p1[0], p2[0], p1[1], p2[1])
     l2 = Bresenham(p2[0], p3[0], p2[1], p3[1])
     l3 = Bresenham(p3[0], p4[0], p3[1], p4[1])
@@ -87,13 +87,13 @@ def navigation():
     # Main Loop
     while(True):
         # Update State
-        car.update()
-        pos = (car.x, car.y, car.yaw)
-        print("\rState: "+car.state_str(), "| Goal:", nav_pos, end="\t")
+        simulator.update()
+        pos = (simulator.x, simulator.y, simulator.yaw)
+        print("\rState: ", simulator.state_str(), "| Goal:", nav_pos, end="\t")
         
         img_ = img.copy()
         if path is not None and collision_count == 0:
-            end_dist = np.hypot(path[-1,0]-car.x, path[-1,1]-car.y)
+            end_dist = np.hypot(path[-1,0]-simulator.x, path[-1,1]-simulator.y)
             if args.simulator == "wmr":
                 # Longitude
                 if end_dist > 5:
@@ -101,18 +101,18 @@ def navigation():
                 else:
                     next_v = 0
                 # Lateral
-                state = {"x":car.x, "y":car.y, "yaw":car.yaw, "v":car.v, "dt":car.dt}
+                state = {"x":simulator.x, "y":simulator.y, "yaw":simulator.yaw, "v":simulator.v, "dt":simulator.dt}
                 next_w, target = controller.feedback(state)
-                car.control(next_v, next_w)
+                simulator.control(next_v, next_w)
             elif args.simulator == "bicycle":
                 # Longitude P-Control
                 target_v = 20 if end_dist > 25 else 0
-                next_a = 1*(target_v - car.v)
+                next_a = 1*(target_v - simulator.v)
 
                 # Lateral Control
-                state = {"x":car.x, "y":car.y, "yaw":car.yaw, "delta":car.delta, "v":car.v, "l":car.l, "dt":car.dt}
+                state = {"x":simulator.x, "y":simulator.y, "yaw":simulator.yaw, "delta":simulator.delta, "v":simulator.v, "l":simulator.l, "dt":simulator.dt}
                 next_delta, target = controller.feedback(state)
-                car.control(next_a, next_delta)
+                simulator.control(next_a, next_delta)
             else:
                 exit()
 
@@ -126,8 +126,8 @@ def navigation():
         # Collision Handling
         if collision_count > 0:
             target_v = -25
-            next_a = 0.2*(target_v - car.v)
-            car.control(next_a, 0)
+            next_a = 0.2*(target_v - simulator.v)
+            simulator.control(next_a, 0)
             collision_count += 1
             if collision_count > 10:
                 way_points = planner.planning((pos[0],pos[1]), nav_pos, 20)
@@ -136,22 +136,22 @@ def navigation():
                 collision_count = 0
 
         # Collision Simulation
-        if collision_detect(car, m):
-            car.redo()
-            car.v = -0.5*car.v
+        if collision_detect(simulator, m):
+            simulator.redo()
+            simulator.v = -0.5*simulator.v
             collision_count = 1
         
         # Environment Rendering
         if nav_pos is not None:
             cv2.circle(img_,nav_pos,5,(0.5,0.5,1.0),3)
-        img_ = car.render(img_)
+        img_ = simulator.render(img_)
         img_ = cv2.flip(img_, 0)
         cv2.imshow(window_name ,img_)
 
         # Keyboard 
         k = cv2.waitKey(1)
         if k == ord("r"):
-            car.init_state(init_pos)
+            simulator.init_state(init_pos)
             nav_pos = None
             path = None
             collision_count = 0
@@ -180,26 +180,26 @@ if __name__ == "__main__":
 
     # Select Simulator and Controller
     if args.simulator == "wmr":
-        from Simulator.model_wmr import KinematicModel
-        car = KinematicModel(d=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
+        from Simulation.simulator_basic import Simulator
+        simulator = Simulator(l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
         if args.controller == "pid":
-            from PathTracking.pid_wmr import Controller
+            from PathTracking.pid_basic import Controller
             controller = Controller()
         elif args.controller == "purepursuit":
-            from PathTracking.pure_pursuit_wmr import Controller
+            from PathTracking.pure_pursuit_basic import Controller
             controller = Controller(Lfc=1)
         elif args.controller == "stanley":
-            from PathTracking.stanley_wmr import Controller
+            from PathTracking.stanley_basic import Controller
             controller = Controller()
         elif args.controller == "lqr":
-            from PathTracking.lqr_wmr import Controller
+            from PathTracking.lqr_basic import Controller
             controller = Controller()
         else:
             print("Unknown controller !!")
             exit(0)
     elif args.simulator == "bicycle":
-        from Simulator.model_bicycle import KinematicModel
-        car = KinematicModel(l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
+        from Simulation.kinematic_bicycle import KinematicModel
+        simulator = KinematicModel(l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
         if args.controller == "pid":
             from PathTracking.pid_bicycle import Controller
             controller = Controller()
@@ -210,7 +210,7 @@ if __name__ == "__main__":
             from PathTracking.stanley_bicycle import Controller
             controller = Controller()
         elif args.controller == "lqr":
-            from PathTracking.lqr_wmr import Controller
+            from PathTracking.lqr_basic import Controller
             controller = Controller()
         else:
             print("Unknown controller !!")
@@ -219,7 +219,7 @@ if __name__ == "__main__":
         print("Unknown simulator !!")
         exit(0)
 
-    car.init_state(init_pos)
+    simulator.init_state(init_pos)
     
     # Path Planning Planner
     if args.planner == "astar":

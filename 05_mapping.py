@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from Simulator.sensor_lidar import LidarModel
+from Simulation.sensor_lidar import LidarModel
 import Mapping.utils
 from Mapping.grid_map import GridMap 
 

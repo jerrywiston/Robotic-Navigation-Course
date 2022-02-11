@@ -21,14 +21,14 @@ class Controller:
         return min_id, min_dist
 
     # State: [x, y, yaw, v, l]
-    def feedback(self, state):
+    def feedback(self, info):
         # Check Path
         if self.path is None:
             print("No path !!")
             return None, None
         
         # Extract State 
-        x, y, yaw, v, l = state["x"], state["y"], state["yaw"], state["v"], state["l"]
+        x, y, yaw, v, l = info["x"], info["y"], info["yaw"], info["v"], info["l"]
 
         # Search Front Target
         min_idx, min_dist = self._search_nearest((x,y))

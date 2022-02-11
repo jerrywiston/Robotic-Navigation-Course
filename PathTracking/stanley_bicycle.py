@@ -20,14 +20,14 @@ class Controller:
         return min_id, min_dist
 
     # State: [x, y, yaw, delta, v, l]
-    def feedback(self, state):
+    def feedback(self, info):
         # Check Path
         if self.path is None:
             print("No path !!")
             return None, None
         
         # Extract State 
-        x, y, yaw, delta, v, l = state["x"], state["y"], state["yaw"], state["delta"], state["v"], state["l"]
+        x, y, yaw, delta, v, l = info["x"], info["y"], info["yaw"], info["delta"], info["v"], info["l"]
 
         # Search Front Wheel Target
         front_x = x + l*np.cos(np.deg2rad(yaw))

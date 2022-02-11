@@ -42,14 +42,14 @@ class Controller:
         return (theta + 180) % 360 - 180
 
     # State: [x, y, yaw, delta, v, l, dt]
-    def feedback(self, state):
+    def feedback(self, info):
         # Check Path
         if self.path is None:
             print("No path !!")
             return None, None
         
         # Extract State 
-        x, y, yaw, v, dt = state["x"], state["y"], state["yaw"], state["v"], state["dt"]
+        x, y, yaw, v, dt = info["x"], info["y"], info["yaw"], info["v"], info["dt"]
         yaw = self._angle_norm(yaw)
         
         # Search Nesrest Target
