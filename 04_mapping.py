@@ -15,15 +15,16 @@ if __name__ == "__main__":
     img = img.astype(float)/255.
 
     # Lidar Sensor
-    lmodel = LidarModel(m)
+    lidar_param = [31, -120.0, 120.0, 250.0]
+    lidar = LidarModel(*lidar_param)
     pos = (100,200,0)
-    sdata = lmodel.measure(pos)
-    plist = Mapping.utils.EndPoint(pos, [31,-120,120], sdata)
+    sdata = lidar.measure(img, pos)
+    plist = Mapping.utils.EndPoint(pos, lidar_param, sdata)
     print(sdata)
 
     # Draw Map
     gmap = GridMap([0.7, -0.9, 5.0, -5.0], gsize=3)
-    gmap.update_map(pos, [31,-120,120,250], sdata)
+    gmap.update_map(pos, lidar_param, sdata)
     mimg = gmap.adaptive_get_map_prob()
     mimg = (255*mimg).astype(np.uint8)
     mimg = cv2.cvtColor(mimg, cv2.COLOR_GRAY2RGB)
