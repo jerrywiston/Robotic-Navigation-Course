@@ -3,7 +3,7 @@ import numpy as np
 from Simulation.simulator_basic import SimulatorBasic 
 from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
 from Simulation.simulator_bicycle import SimulatorBicycle
-from Simulation.utils import Bresenham, ControlCommand, compute_car_box
+from Simulation.utils import Bresenham, compute_car_box
 
 sys.path.append("..")
 

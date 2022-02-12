@@ -2,8 +2,9 @@ import cv2
 import numpy as np
 
 class PlannerAStar():
-    def __init__(self,m):
+    def __init__(self, m, inter=10):
         self.map = m
+        self.inter = inter
         self.initialize()
 
     def initialize(self):
@@ -18,7 +19,9 @@ class PlannerAStar():
         d = np.max([np.abs(a[0]-b[0]), np.abs(a[1]-b[1])])
         return d
 
-    def planning(self, start=(100,200), goal=(375,520), inter=10, img=None):
+    def planning(self, start=(100,200), goal=(375,520), inter=None, img=None):
+        if inter is None:
+            inter = self.inter
         start = (int(start[0]), int(start[1]))
         goal = (int(goal[0]), int(goal[1]))
         # Initialize 

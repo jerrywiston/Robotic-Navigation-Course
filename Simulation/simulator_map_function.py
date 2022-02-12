@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from Simulation.utils import Bresenham, ControlCommand, compute_car_box
+from Simulation.utils import Bresenham, compute_car_box
 
 sys.path.append("..")
 

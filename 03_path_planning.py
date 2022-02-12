@@ -26,17 +26,17 @@ if __name__ == "__main__":
     start=(100,200)
     goal=(380,520)
     if args.planner == "a_star":
-        from PathPlanning.astar import PlannerAStar as Planner
-        planner = Planner(m)
-        path = planner.planning(start=start, goal=goal, img=img, inter=20)
+        from PathPlanning.a_star import PlannerAStar as Planner
+        planner = Planner(m, 20)
+        path = planner.planning(start, goal, img=img)
     elif args.planner == "rrt":
         from PathPlanning.rrt import PlannerRRT as Planner
-        planner = Planner(m)
-        path = planner.planning(start, goal, 30, img)
+        planner = Planner(m, 40)
+        path = planner.planning(start, goal, img=img)
     elif args.planner == "rrt_star":
         from PathPlanning.rrt_star import PlannerRRTStar as Planner
-        planner = Planner(m)
-        path = planner.planning(start, goal, 30, img)
+        planner = Planner(m, 30)
+        path = planner.planning(start, goal, img=img)
     else:
         print("Unknown planner !!")
         exit(0)

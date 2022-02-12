@@ -223,7 +223,7 @@ if __name__ == "__main__":
     
     # Path Planning Planner
     if args.planner == "astar":
-        from PathPlanning.astar import Planner
+        from PathPlanning.a_star import Planner
     elif args.planner == "rrt":
         from PathPlanning.rrt import Planner
     elif args.planner == "rrtstar":

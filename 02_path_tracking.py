@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
     parser.add_argument("-c", "--controller", type=str, default="pure_pursuit", help="pid/pure_pursuit/stanley/lqr")
-    parser.add_argument("-p", "--path_type", type=int, default=2, help="1/2")
+    parser.add_argument("-t", "--path_type", type=int, default=2, help="1/2")
     args = parser.parse_args()
 
     # Select Simulator and Controller

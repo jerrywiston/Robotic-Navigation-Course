@@ -5,8 +5,9 @@ sys.path.append("..")
 import PathPlanning.utils as utils
 
 class PlannerRRTStar():
-    def __init__(self,m):
+    def __init__(self, m, extend_len):
         self.map = m
+        self.extend_len = extend_len 
 
     def _distance(self, n1, n2):
         d = np.array(n1) - np.array(n2)
@@ -61,7 +62,9 @@ class PlannerRRTStar():
                 nlist.append(n)
         return nlist
 
-    def planning(self, start, goal, extend_lens, img=None):
+    def planning(self, start, goal, extend_len=None, img=None):
+        if extend_len is None:
+            extend_len = self.extend_len
         self.ntree = {}
         self.ntree[start] = None
         self.cost = {}
@@ -71,13 +74,13 @@ class PlannerRRTStar():
             #print("\r", it, len(self.ntree), end="")
             samp_node = self._random_node(goal, self.map.shape)
             near_node = self._nearest_node(samp_node)
-            new_node, cost = self._steer(near_node, samp_node, extend_lens)
+            new_node, cost = self._steer(near_node, samp_node, extend_len)
             if new_node is not False:
                 self.ntree[new_node] = near_node
                 self.cost[new_node] = cost + self.cost[near_node]
             else:
                 continue
-            if self._distance(near_node, goal) < extend_lens:
+            if self._distance(near_node, goal) < extend_len:
                 goal_node = near_node
                 break
         

@@ -5,6 +5,7 @@ from Simulation.utils import ControlCommand
 
 # Basic Kinematic Model
 def run_basic():
+    from Simulation.simulator_basic import SimulatorBasic as Simulator
     print("Control Hint:")
     print("[W] Increase velocity.")
     print("[S] Decrease velocity.")
@@ -37,7 +38,8 @@ def run_basic():
             command = ControlCommand(args.simulator, None, None)
 
 # Diferential-Drive Kinematic Model
-def run_ddv():
+def run_dd():
+    from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
     print("Control Hint:")
     print("[A] Decrease angular velocity of left wheel.")
     print("[Q] Increase angular velocity of left wheel.")
@@ -71,6 +73,7 @@ def run_ddv():
 
 # Bicycle Kinematic Model
 def run_bicycle():
+    from Simulation.simulator_bicycle import SimulatorBicycle as Simulator
     print("Control Hint:")
     print("[W] Increase velocity.")
     print("[S] Decrease velocity.")
@@ -109,13 +112,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     try:
         if args.simulator == "basic":
-            from Simulation.simulator_basic import SimulatorBasic as Simulator
             run_basic()
         elif args.simulator == "dd":
-            from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
-            run_ddv()
-        elif args.simulator == "bicycle":
-            from Simulation.simulator_bicycle import SimulatorBicycle as Simulator
+            run_dd()
+        elif args.simulator == "bicycle":    
             run_bicycle()
         else:
             raise NameError("Unknown simulator!!")
