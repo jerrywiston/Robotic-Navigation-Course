@@ -113,7 +113,7 @@ def run_bicycle(m):
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/wmr/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
     args = parser.parse_args()
     # Read Map
     img = cv2.flip(cv2.imread("Maps/map1.png"),0)

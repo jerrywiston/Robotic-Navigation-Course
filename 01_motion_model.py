@@ -105,7 +105,7 @@ def run_bicycle():
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/wmr/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
     args = parser.parse_args()
     try:
         if args.simulator == "basic":

@@ -8,7 +8,7 @@ def pos_int(p):
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--planner", type=str, default="astar", help="astar/rrt/rrtstar")
+    parser.add_argument("-p", "--planner", type=str, default="a_star", help="a_star/rrt/rrt_star")
     parser.add_argument("--smooth", action="store_true", help="true/false")
     args = parser.parse_args()
 
