@@ -23,25 +23,25 @@ class State:
             self.w = w
 
     def pose(self):
-        return np.array([self.x, self.y, self.yaw])
+        return (self.x, self.y, self.yaw)
     
     def __str__(self):
         return "[State] x={:.4f}, y={:.4f}, yaw={:.4f}, v={:.4f}, w={:.4f}".format(self.x, self.y, self.yaw, self.v, self.w)
 
-class ControlCommand:
-    def __init__(self, control_type, *command): 
+class ControlState:
+    def __init__(self, control_type, *cstate): 
         #  Support basic/bicycle/wmr
         self.control_type = control_type
         try:
             if control_type == "basic":
-                self.v = command[0]
-                self.w = command[1]
+                self.v = cstate[0]
+                self.w = cstate[1]
             elif control_type == "dd":
-                self.lw = command[0]
-                self.rw = command[1]
+                self.lw = cstate[0]
+                self.rw = cstate[1]
             elif control_type == "bicycle":
-                self.a = command[0]
-                self.delta = command[1]
+                self.a = cstate[0]
+                self.delta = cstate[1]
             else:
                 raise NameError("Unknown control type!!")
         except NameError:

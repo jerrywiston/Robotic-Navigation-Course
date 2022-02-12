@@ -5,7 +5,7 @@ import cv2
 sys.path.append("..")
 from Simulation.simulator import Simulator
 import Simulation.utils as utils
-from Simulation.utils import State, ControlCommand
+from Simulation.utils import State, ControlState
 from Simulation.kinematic_bicycle import KinematicModelBicycle as KinematicModel
 
 class SimulatorBicycle(Simulator):
@@ -50,16 +50,16 @@ class SimulatorBicycle(Simulator):
         self.a = 0.0
         self.delta = 0.0
 
-    def init_state(self, pos):
+    def init_pose(self, pos):
         self.state.update(pos[0], pos[1], pos[2])
         self.a = 0.0
         self.delta = 0.0
         self.record = []
 
-    def step(self, input_command, update_state=True):
+    def step(self, command, update_state=True):
         # Check Control Command
-        self.a = input_command.a if input_command.a is not None else self.a
-        self.delta = input_command.delta if input_command.delta is not None else self.delta
+        self.a = command.a if command.a is not None else self.a
+        self.delta = command.delta if command.delta is not None else self.delta
 
         # Control Constrain
         if self.a > self.a_range:
@@ -78,8 +78,8 @@ class SimulatorBicycle(Simulator):
             self.state.v = -self.v_range
         
         # Motion
-        command = ControlCommand("bicycle", self.a, self.delta)
-        state_next = self.model.step(self.state, command)
+        cstate = ControlState("bicycle", self.a, self.delta)
+        state_next = self.model.step(self.state, cstate)
         if update_state:
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))

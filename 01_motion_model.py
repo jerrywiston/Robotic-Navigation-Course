@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 import cv2
-from Simulation.utils import ControlCommand
+from Simulation.utils import ControlState
 
 # Basic Kinematic Model
 def run_basic():
@@ -13,8 +13,8 @@ def run_basic():
     print("[D] Decrease angular velocity. (Clockwise)")
     print("====================")
     simulator = Simulator()
-    simulator.init_state((300,300,0))
-    command = ControlCommand(args.simulator, None, None)
+    simulator.init_pose((300,300,0))
+    command = ControlState(args.simulator, None, None)
     while(True):
         print("\r", simulator, end="\t")
         img = np.ones((600,600,3))
@@ -24,18 +24,18 @@ def run_basic():
         cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlCommand(args.simulator, None, simulator.w+5)
+            command = ControlState(args.simulator, None, simulator.w+5)
         elif k == ord("d"):
-            command = ControlCommand(args.simulator, None, simulator.w-5)
+            command = ControlState(args.simulator, None, simulator.w-5)
         elif k == ord("w"):
-            command = ControlCommand(args.simulator, simulator.v+4, None)
+            command = ControlState(args.simulator, simulator.v+4, None)
         elif k == ord("s"):
-            command = ControlCommand(args.simulator, simulator.v-4, None)
+            command = ControlState(args.simulator, simulator.v-4, None)
         elif k == 27:
             print()
             break
         else:
-            command = ControlCommand(args.simulator, None, None)
+            command = ControlState(args.simulator, None, None)
 
 # Diferential-Drive Kinematic Model
 def run_dd():
@@ -47,8 +47,8 @@ def run_dd():
     print("[E] Increase angular velocity of right wheel.")
     print("====================")
     simulator = Simulator()
-    simulator.init_state((300,300,0))
-    command = ControlCommand(args.simulator, None, None)
+    simulator.init_pose((300,300,0))
+    command = ControlState(args.simulator, None, None)
     while(True):
         print("\r", simulator, end="\t")
         img = np.ones((600,600,3))
@@ -58,18 +58,18 @@ def run_dd():
         cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlCommand(args.simulator, simulator.lw-30, None)
+            command = ControlState(args.simulator, simulator.lw-30, None)
         elif k == ord("d"):
-            command = ControlCommand(args.simulator, None, simulator.rw-30)
+            command = ControlState(args.simulator, None, simulator.rw-30)
         elif k == ord("q"):
-            command = ControlCommand(args.simulator, simulator.lw+30, None)
+            command = ControlState(args.simulator, simulator.lw+30, None)
         elif k == ord("e"):
-            command = ControlCommand(args.simulator, None, simulator.rw+30)
+            command = ControlState(args.simulator, None, simulator.rw+30)
         elif k == 27:
             print()
             break
         else:
-            command = ControlCommand(args.simulator, None, None)
+            command = ControlState(args.simulator, None, None)
 
 # Bicycle Kinematic Model
 def run_bicycle():
@@ -81,8 +81,8 @@ def run_bicycle():
     print("[D] Wheel turn clockwise.")
     print("====================")
     simulator = Simulator()
-    simulator.init_state((300,300,0))
-    command = ControlCommand(args.simulator, None, None)
+    simulator.init_pose((300,300,0))
+    command = ControlState(args.simulator, None, None)
     while(True):
         print("\r", simulator, end="\t")
         img = np.ones((600,600,3))
@@ -92,18 +92,18 @@ def run_bicycle():
         cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlCommand(args.simulator, 0, simulator.delta+5)
+            command = ControlState(args.simulator, 0, simulator.delta+5)
         elif k == ord("d"):
-            command = ControlCommand(args.simulator, 0, simulator.delta-5)
+            command = ControlState(args.simulator, 0, simulator.delta-5)
         elif k == ord("w"):
-            command = ControlCommand(args.simulator, simulator.a+10, None)
+            command = ControlState(args.simulator, simulator.a+10, None)
         elif k == ord("s"):
-            command = ControlCommand(args.simulator, simulator.a-10, None)
+            command = ControlState(args.simulator, simulator.a-10, None)
         elif k == 27:
             print()
             break
         else:
-            command = ControlCommand(args.simulator, 0, None)
+            command = ControlState(args.simulator, 0, None)
 
 if __name__ == "__main__":
     # Argument Parser

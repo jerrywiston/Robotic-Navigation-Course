@@ -2,7 +2,7 @@ import sys
 import abc
 
 sys.path.append("..")
-from Simulation.utils import ControlCommand
+from Simulation.utils import ControlState
 
 class Simulator:
     @abc.abstractmethod
@@ -10,7 +10,7 @@ class Simulator:
         return NotImplementedError
 
     @abc.abstractmethod
-    def step(self, input_command:ControlCommand):
+    def step(self, command:ControlState):
         return NotImplementedError
     
     @abc.abstractmethod

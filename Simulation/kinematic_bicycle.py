@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 sys.path.append("..")
-from Simulation.utils import State, ControlCommand
+from Simulation.utils import State, ControlState
 
 class KinematicModelBicycle:
     def __init__(self,
@@ -13,9 +13,9 @@ class KinematicModelBicycle:
         # Simulation delta time
         self.dt = dt
 
-    def step(self, state:State, command:ControlCommand) -> State:
-        v = state.v + command.a*self.dt
-        w = np.rad2deg(state.v / self.l * np.tan(np.deg2rad(command.delta)))
+    def step(self, state:State, cstate:ControlState) -> State:
+        v = state.v + cstate.a*self.dt
+        w = np.rad2deg(state.v / self.l * np.tan(np.deg2rad(cstate.delta)))
         x = state.x + state.v * np.cos(np.deg2rad(state.yaw)) * self.dt
         y = state.y + state.v * np.sin(np.deg2rad(state.yaw)) * self.dt
         yaw = (state.yaw + state.w * self.dt) % 360

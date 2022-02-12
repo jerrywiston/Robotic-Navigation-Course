@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import argparse
-from Simulation.utils import ControlCommand
+from Simulation.utils import ControlState
 import PathTracking.utils
 
 if __name__ == "__main__":
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # Initialize Car
     simulator = Simulator()
     start = (50,300,0)
-    simulator.init_state(start)
+    simulator.init_pose(start)
     controller = Controller()
     controller.set_path(path)
 
@@ -92,14 +92,14 @@ if __name__ == "__main__":
             }
             next_w, target = controller.feedback(info)
             if args.simulator == "basic":
-                command = ControlCommand("basic", next_v, next_w)
+                command = ControlState("basic", next_v, next_w)
             else:
                 r = simulator.wu/2
                 next_lw = next_v / r - np.deg2rad(next_w)*simulator.l/r
                 next_lw = np.rad2deg(next_lw)
                 next_rw = next_v / r + np.deg2rad(next_w)*simulator.l/r
                 next_rw = np.rad2deg(next_rw)
-                command = ControlCommand("dd", next_lw, next_rw)
+                command = ControlState("dd", next_lw, next_rw)
         elif args.simulator == "bicycle":
             # Longitude (P Control)
             if end_dist > 40:
@@ -118,7 +118,7 @@ if __name__ == "__main__":
                 "dt":simulator.dt
             }
             next_delta, target = controller.feedback(info)
-            command = ControlCommand("bicycle", next_a, next_delta)
+            command = ControlState("bicycle", next_a, next_delta)
  
         # Update State & Render
         simulator.step(command)

@@ -5,7 +5,7 @@ import cv2
 sys.path.append("..")
 from Simulation.simulator import Simulator
 import Simulation.utils as utils
-from Simulation.utils import State, ControlCommand
+from Simulation.utils import State, ControlState
 from Simulation.kinematic_differential_drive import KinematicModelDifferentialDrive as KinematicModel
 
 # Differential Drive
@@ -46,16 +46,16 @@ class SimulatorDifferentialDrive(Simulator):
         self.lw = 0.0
         self.rw = 0.0
     
-    def init_state(self, pos):
+    def init_pose(self, pos):
         self.state.update(pos[0], pos[1], pos[2])
         self.lw = 0.0
         self.rw = 0.0
         self.record = []
 
-    def step(self, input_command, update_state=True):
+    def step(self, command, update_state=True):
         # Check Control Command
-        self.lw = input_command.lw if input_command.lw is not None else self.lw
-        self.rw = input_command.rw if input_command.rw is not None else self.rw
+        self.lw = command.lw if command.lw is not None else self.lw
+        self.rw = command.rw if command.rw is not None else self.rw
 
         # Control Constrain
         if self.lw > self.lw_range:
@@ -68,8 +68,8 @@ class SimulatorDifferentialDrive(Simulator):
             self.rw = -self.rw_range
 
         # Motion
-        command = ControlCommand("dd", self.lw, self.rw)
-        state_next = self.model.step(self.state, command)
+        cstate = ControlState("dd", self.lw, self.rw)
+        state_next = self.model.step(self.state, cstate)
         if update_state:
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))

@@ -5,7 +5,7 @@ import cv2
 sys.path.append("..")
 from Simulation.simulator import Simulator
 import Simulation.utils as utils
-from Simulation.utils import State, ControlCommand
+from Simulation.utils import State, ControlState
 from Simulation.kinematic_basic import KinematicModelBasic as KinematicModel
 
 #wheeled mobile robotics
@@ -46,16 +46,16 @@ class SimulatorBasic(Simulator):
         self.v = 0.0
         self.w = 0.0
     
-    def init_state(self, pos):
+    def init_pose(self, pos):
         self.state.update(pos[0], pos[1], pos[2])
         self.v = 0.0
         self.w = 0.0
         self.record = []
 
-    def step(self, input_command, update_state=True):
+    def step(self, command, update_state=True):
         # Check Control Command
-        self.v = input_command.v if input_command.v is not None else self.v
-        self.w = input_command.w if input_command.w is not None else self.w
+        self.v = command.v if command.v is not None else self.v
+        self.w = command.w if command.w is not None else self.w
 
         # Control Constrain
         if self.v > self.v_range:
@@ -68,8 +68,8 @@ class SimulatorBasic(Simulator):
             self.state.w = -self.w_range
 
         # Motion
-        command = ControlCommand("basic", self.v, self.w)
-        state_next = self.model.step(self.state, command)
+        cstate = ControlState("basic", self.v, self.w)
+        state_next = self.model.step(self.state, cstate)
         if update_state:
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))

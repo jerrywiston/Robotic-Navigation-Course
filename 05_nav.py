@@ -12,8 +12,8 @@ nav_pos = None
 way_points = None
 path = None
 collision_count = 0
-init_pos = (100,200,0)
-pos = init_pos
+start_pose = (100,200,0)
+pose = start_pose
 window_name = "Known Map Navigation Demo"
 simulator = None
 controller = None
@@ -39,7 +39,47 @@ def pos_int(p):
     return (int(p[0]), int(p[1]))
 
 def navigation():
-    pass
+    cv2.namedWindow(window_name)
+    cv2.setMouseCallback(window_name, mouse_click)
+    simulator.init_pose(start_pose)
+    command = ControlState(args.simulator, None, None)
+    # Main Loop
+    while(True):
+        # Update State
+        simulator.step(command)
+        pose = (simulator.state.x, simulator.state.y, simulator.state.yaw)
+        print("\rState: ", simulator, "| Goal:", nav_pos, end="\t")
+        
+        if path is not None and collision_count == 0:
+            end_dist = np.hypot(path[-1,0]-simulator.x, path[-1,1]-simulator.y)
+            if args.simulator == "wmr":
+                # Longitude
+                if end_dist > 5:
+                    next_v = 20
+                else:
+                    next_v = 0
+                # Lateral
+                state = {"x":simulator.x, "y":simulator.y, "yaw":simulator.yaw, "v":simulator.v, "dt":simulator.dt}
+                next_w, target = controller.feedback(state)
+                simulator.control(next_v, next_w)
+            elif args.simulator == "bicycle":
+                # Longitude P-Control
+                target_v = 20 if end_dist > 25 else 0
+                next_a = 1*(target_v - simulator.v)
+
+                # Lateral Control
+                state = {"x":simulator.x, "y":simulator.y, "yaw":simulator.yaw, "delta":simulator.delta, "v":simulator.v, "l":simulator.l, "dt":simulator.dt}
+                next_delta, target = controller.feedback(state)
+                simulator.control(next_a, next_delta)
+            else:
+                exit()
+
+            # Render Path
+            for i in range(len(way_points)):    # Draw Way Points
+                cv2.circle(img_, pos_int(way_points[i]), 3, (1.0,0.4,0.4), 1)
+            for i in range(len(path)-1):    # Draw Interpolating Curve
+                cv2.line(img_, pos_int(path[i]), pos_int(path[i+1]), (1.0,0.4,0.4), 1)
+            cv2.circle(img_,(int(target[0]),int(target[1])),3,(1,0.3,0.7),2)    # Draw Target Points
 
 if __name__ == "__main__":
     # Argument Parser
