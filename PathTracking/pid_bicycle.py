@@ -1,7 +1,6 @@
-# PID Controller for Bicycle Model
 import numpy as np 
 
-class Controller:
+class ControllerPIDBicycle:
     def __init__(self, kp=0.4, ki=0.0001, kd=0.5):
         self.path = None
         self.kp = kp

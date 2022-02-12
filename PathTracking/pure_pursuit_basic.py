@@ -1,7 +1,6 @@
-# Pure Pursuit Controller for WMR Model
 import numpy as np 
 
-class Controller:
+class ControllerPurePursuitBasic:
     def __init__(self, kp=1, Lfc=10):
         self.path = None
         self.kp = kp

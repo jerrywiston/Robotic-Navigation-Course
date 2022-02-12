@@ -8,49 +8,39 @@ if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
-    parser.add_argument("-c", "--controller", type=str, default="purepursuit", help="pid/pure_pursuit/stanley/lqr")
+    parser.add_argument("-c", "--controller", type=str, default="pure_pursuit", help="pid/pure_pursuit/stanley/lqr")
     parser.add_argument("-p", "--path_type", type=int, default=2, help="1/2")
     args = parser.parse_args()
 
     # Select Simulator and Controller
     try:
-        # Basic Kinematic Model 
-        if args.simulator == "basic":
-            from Simulation.simulator_basic import SimulatorBasic as Simulator
-            if args.controller == "pid":
-                from PathTracking.pid_basic import Controller
-            elif args.controller == "pure_pursuit":
-                from PathTracking.pure_pursuit_basic import Controller
-            elif args.controller == "stanley":
-                from PathTracking.stanley_basic import Controller
-            elif args.controller == "lqr":
-                from PathTracking.lqr_basic import Controller
+        # Basic Kinematic Model & Differential Drive Kinematic Model
+        if args.simulator == "basic" or args.simulator == "dd":
+            if args.simulator == "basic":
+                from Simulation.simulator_basic import SimulatorBasic as Simulator
             else:
-                raise NameError("Unknown controller!!")
-        # Diferential-Drive Kinematic Model
-        elif args.simulator == "dd":
-            from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
+                from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
             if args.controller == "pid":
-                from PathTracking.pid_basic import Controller
+                from PathTracking.pid_basic import ControllerPIDBasic as Controller
             elif args.controller == "pure_pursuit":
-                from PathTracking.pure_pursuit_basic import Controller
+                from PathTracking.pure_pursuit_basic import ControllerPurePursuitBasic as Controller
             elif args.controller == "stanley":
-                from PathTracking.stanley_basic import Controller
+                from PathTracking.stanley_basic import ControllerStanleyBasic as Controller
             elif args.controller == "lqr":
-                from PathTracking.lqr_basic import Controller
+                from PathTracking.lqr_basic import ControllerLQRBasic as Controller
             else:
                 raise NameError("Unknown controller!!")
         # Bicycle Model
         elif args.simulator == "bicycle":
             from Simulation.simulator_bicycle import SimulatorBicycle as Simulator
             if args.controller == "pid":
-                from PathTracking.pid_bicycle import Controller
+                from PathTracking.pid_bicycle import ControllerPIDBicycle as Controller
             elif args.controller == "pure_pursuit":
-                from PathTracking.pure_pursuit_bicycle import Controller
+                from PathTracking.pure_pursuit_bicycle import ControllerPurePursuitBicycle as Controller
             elif args.controller == "stanley":
-                from PathTracking.stanley_bicycle import Controller
+                from PathTracking.stanley_bicycle import ControllerStanleyBicycle as Controller
             elif args.controller == "lqr":
-                from PathTracking.lqr_bicycle import Controller
+                from PathTracking.lqr_bicycle import ControllerLQRBicycle as Controller
             else:
                 raise NameError("Unknown controller!!")
         else:

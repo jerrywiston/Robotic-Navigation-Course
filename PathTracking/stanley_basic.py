@@ -1,7 +1,6 @@
-# Stanley Controller for WMR Model
 import numpy as np 
 
-class Controller:
+class ControllerStanleyBasic:
     def __init__(self, kp=0.5):
         self.path = None
         self.kp = kp

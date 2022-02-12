@@ -1,7 +1,6 @@
-# LQR Controller for Bicycle Model
 import numpy as np 
 
-class Controller:
+class ControllerLQRBicycle:
     def __init__(self, Q=np.eye(4), R=np.eye(1)):
         self.path = None
         self.Q = Q

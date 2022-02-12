@@ -1,7 +1,6 @@
-# Pure Pursuit for Bicycle Model
 import numpy as np 
 
-class Controller:
+class ControllerPurePursuitBicycle:
     def __init__(self, kp=1, Lfc=25):
         self.path = None
         self.kp = kp

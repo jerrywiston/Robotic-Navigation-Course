@@ -1,7 +1,6 @@
-# LQR Controller for WMR Model
 import numpy as np 
 
-class Controller:
+class ControllerLQRBasic:
     def __init__(self, Q=np.eye(4), R=np.eye(1)):
         self.path = None
         self.Q = Q
