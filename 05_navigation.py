@@ -13,9 +13,7 @@ way_points = None
 path = None
 set_controller_path = False
 collision_count = 0
-start_pose = (100,200,0)
-pose = start_pose
-window_name = "Known Map Navigation Demo"
+pose = None
 
 ##############################
 # Navigation
@@ -43,10 +41,13 @@ def render_path(img, nav_pos, way_points, path):
         cv2.line(img, pos_int(path[i]), pos_int(path[i+1]), (1.0,0.4,0.4), 1)
     return img
 
-def navigation(args, simulator, controller, planner):
+def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
     global nav_pos, way_points, path, collision_count, init_pos, pose
+    # Initialize
+    window_name = "Known Map Navigation Demo"
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, mouse_click)
+    pose = start_pose
     simulator.init_pose(start_pose)
     command = ControlState(args.simulator, None, None)
     # Main Loop
