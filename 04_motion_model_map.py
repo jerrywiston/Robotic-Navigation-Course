@@ -2,11 +2,10 @@ import argparse
 import numpy as np
 import cv2
 from Simulation.utils import ControlState
-from Simulation.simulator_map_function import SimulatorMap
-#from Simulation.simulator_map_multi_inheritance import SimulatorMap
+from Simulation.simulator_map import SimulatorMap, SimulatorMapLidar
 
 # Basic Kinematic Model
-def run_basic(m):
+def run_basic(m, use_lidar):
     from Simulation.simulator_basic import SimulatorBasic
     print("Control Hint:")
     print("[W] Increase velocity.")
@@ -14,8 +13,10 @@ def run_basic(m):
     print("[A] Increase angular velocity. (Anti-Clockwise)")
     print("[D] Decrease angular velocity. (Clockwise)")
     print("====================")
-    simulator = SimulatorMap(SimulatorBasic)(m)
-    #simulator = SimulatorMap(SimulatorBasic, m)
+    if use_lidar:
+        simulator = SimulatorMapLidar(SimulatorBasic, m)
+    else:
+        simulator = SimulatorMap(SimulatorBasic, m)
     simulator.init_pose((100,200,0))
     command = ControlState(args.simulator, None, None)
     while(True):
@@ -41,7 +42,7 @@ def run_basic(m):
             command = ControlState(args.simulator, None, None)
 
 # Diferential-Drive Kinematic Model
-def run_ddv(m):
+def run_ddv(m, use_lidar):
     from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
     print("Control Hint:")
     print("[A] Decrease angular velocity of left wheel.")
@@ -49,8 +50,10 @@ def run_ddv(m):
     print("[D] Decrease angular velocity of right wheel.")
     print("[E] Increase angular velocity of right wheel.")
     print("====================")
-    simulator = SimulatorMap(SimulatorDifferentialDrive)(m)
-    #simulator = SimulatorMap(SimulatorDifferentialDrive, m)
+    if use_lidar:
+        simulator = SimulatorMapLidar(SimulatorDifferentialDrive, m)
+    else:
+        simulator = SimulatorMap(SimulatorDifferentialDrive, m)
     simulator.init_pose((100,200,0))
     command = ControlState(args.simulator, None, None)
     while(True):
@@ -76,7 +79,7 @@ def run_ddv(m):
             command = ControlState(args.simulator, None, None)
 
 # Bicycle Kinematic Model
-def run_bicycle(m):
+def run_bicycle(m, use_lidar):
     print("Control Hint:")
     print("[W] Increase velocity.")
     print("[S] Decrease velocity.")
@@ -84,8 +87,10 @@ def run_bicycle(m):
     print("[D] Wheel turn clockwise.")
     print("====================")
     from Simulation.simulator_bicycle import SimulatorBicycle
-    simulator = SimulatorMap(SimulatorBicycle)(m)
-    #simulator = SimulatorMap(SimulatorBicycle, m)
+    if use_lidar:
+        simulator = SimulatorMapLidar(SimulatorBicycle, m)
+    else:
+        simulator = SimulatorMap(SimulatorBicycle, m)
     simulator.init_pose((100,200,0))
     command = ControlState(args.simulator, None, None)
     while(True):
@@ -114,6 +119,7 @@ if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
+    parser.add_argument("--lidar", action="store_true")
     args = parser.parse_args()
     # Read Map
     img = cv2.flip(cv2.imread("Maps/map1.png"),0)
@@ -124,11 +130,11 @@ if __name__ == "__main__":
     m = m.astype(float) / 255.
     try:
         if args.simulator == "basic":
-            run_basic(m)
+            run_basic(m, use_lidar=args.lidar)
         elif args.simulator == "dd":
-            run_ddv(m)
+            run_ddv(m, use_lidar=args.lidar)
         elif args.simulator == "bicycle":
-            run_bicycle(m)
+            run_bicycle(m, use_lidar=args.lidar)
         else:
             raise NameError("Unknown simulator!!")
     except NameError:

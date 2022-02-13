@@ -6,7 +6,7 @@ from Simulation.utils import *
 
 class LidarModel:
     def __init__(self,
-            sensor_size = 61,
+            sensor_size = 31,
             start_angle = -120.0,
             end_angle = 120.0,
             max_dist = 250.0,
@@ -16,19 +16,19 @@ class LidarModel:
         self.end_angle = end_angle
         self.max_dist = max_dist
     
-    def measure(self, img_map, pos):
+    def measure(self, img_map, pose):
         if len(img_map.shape) > 2:
             img_map = img_map[:,:,0]
         sense_data = []
         inter = (self.end_angle-self.start_angle) / (self.sensor_size-1)
         for i in range(self.sensor_size):
-            theta = pos[2] + self.start_angle + i*inter
-            sense_data.append(self._ray_cast(img_map, np.array((pos[0], pos[1])), theta))
+            theta = pose[2] + self.start_angle + i*inter
+            sense_data.append(self._ray_cast(img_map, np.array((pose[0], pose[1])), theta))
         return sense_data
     
-    def _ray_cast(self, img_map, pos, theta):
-        end = np.array((pos[0] + self.max_dist*np.cos(np.deg2rad(theta)), pos[1] + self.max_dist*np.sin(np.deg2rad(theta))))
-        x0, y0 = int(pos[0]), int(pos[1])
+    def _ray_cast(self, img_map, pose, theta):
+        end = np.array((pose[0] + self.max_dist*np.cos(np.deg2rad(theta)), pose[1] + self.max_dist*np.sin(np.deg2rad(theta))))
+        x0, y0 = int(pose[0]), int(pose[1])
         x1, y1 = int(end[0]), int(end[1])
         plist = Bresenham(x0, x1, y0, y1)
         i = 0
@@ -37,7 +37,7 @@ class LidarModel:
             if p[1] >= img_map.shape[0] or p[0] >= img_map.shape[1] or p[1]<0 or p[0]<0:
                 continue
             if img_map[p[1], p[0]] < 0.5:
-                tmp = np.power(float(p[0]) - pos[0], 2) + np.power(float(p[1]) - pos[1], 2)
+                tmp = np.power(float(p[0]) - pose[0], 2) + np.power(float(p[1]) - pose[1], 2)
                 tmp = np.sqrt(tmp)
                 if tmp < dist:
                     dist = tmp
@@ -53,17 +53,17 @@ if __name__ == "__main__":
     img = img.astype(float)/255.
 
     lmodel = LidarModel()
-    pos = (100,200,0)
-    sdata = lmodel.measure(img, pos)
-    plist = EndPoint(pos, [61,-120,120], sdata)
+    pose = (100,200,0)
+    sdata = lmodel.measure(img, pose)
+    plist = EndPoint(pose, [61,-120,120], sdata)
     img_ = img.copy()
     for pts in plist:
         cv2.line(
             img_, 
-            (int(1*pos[0]), int(1*pos[1])), 
+            (int(1*pose[0]), int(1*pose[1])), 
             (int(1*pts[0]), int(1*pts[1])),
             (0.0,1.0,0.0), 1)
-    cv2.circle(img_,(pos[0],pos[1]),5,(0.5,0.5,0.5),3)
+    cv2.circle(img_,(pose[0],pose[1]),5,(0.5,0.5,0.5),3)
     img_ = cv2.flip(img_,0)
     cv2.imshow("Lidar Test", img_)
     k = cv2.waitKey(0)

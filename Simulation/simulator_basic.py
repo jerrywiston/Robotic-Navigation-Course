@@ -46,8 +46,8 @@ class SimulatorBasic(Simulator):
         self.v = 0.0
         self.w = 0.0
     
-    def init_pose(self, pos):
-        self.state.update(pos[0], pos[1], pos[2])
+    def init_pose(self, pose):
+        self.state.update(pose[0], pose[1], pose[2])
         self.v = 0.0
         self.w = 0.0
         self.record = []

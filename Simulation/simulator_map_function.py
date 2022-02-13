@@ -1,8 +1,9 @@
 import sys
 import numpy as np
-from Simulation.utils import Bresenham, compute_car_box
 
 sys.path.append("..")
+from Simulation.utils import Bresenham, compute_car_box
+from Simulation.sensor_lidar import LidarModel
 
 def SimulatorMap(simulator_class):
     class SimulatorMapClass(simulator_class):
@@ -45,3 +46,17 @@ def SimulatorMap(simulator_class):
             return img
 
     return SimulatorMapClass
+
+def SimulatorMapLidar(simulator_class):
+    simulator_class2 = SimulatorMap(simulator_class)
+    class SimulatorMapLidarClass(simulator_class2):
+        def __init__(self, m, lidar_param, **kwargs):
+            simulator_class2.init()
+
+        def step(self):
+            pass
+
+        def render(self):
+            pass
+    
+    return SimulatorMapLidarClass

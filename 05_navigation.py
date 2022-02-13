@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 import cv2
 from Simulation.utils import ControlState
-from Simulation.simulator_map_function import SimulatorMap
+from Simulation.simulator_map import SimulatorMap
 from PathPlanning.cubic_spline import *
 
 ##############################
@@ -42,7 +42,7 @@ def render_path(img, nav_pos, way_points, path):
     return img
 
 def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
-    global pose, nav_pos, way_points, path
+    global pose, nav_pos, way_points, path, set_controller_path
     # Initialize
     window_name = "Known Map Navigation Demo"
     cv2.namedWindow(window_name)
@@ -56,11 +56,11 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
         # Update State
         simulator.step(command)
         pose = (simulator.state.x, simulator.state.y, simulator.state.yaw)
-        print("\rState: ", simulator, "| Goal:", nav_pos, end="\t")
+        print("\r", simulator, "| Goal:", nav_pos, end="\t")
         
         if set_controller_path:
             controller.set_path(path)
-            controller_set_path = False
+            set_controller_path = False
 
         if path is not None and collision_count == 0:
             end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
@@ -131,7 +131,7 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
         cv2.imshow(window_name, img)
         k = cv2.waitKey(1)
         if k == ord('r'):
-            simulator.init_state(start)
+            simulator.init_state(start_pose)
         if k == 27:
             print()
             break
@@ -160,11 +160,15 @@ if __name__ == "__main__":
         if args.simulator == "basic" or args.simulator == "dd":
             if args.simulator == "basic":
                 from Simulation.simulator_basic import SimulatorBasic
-                Simulator = SimulatorMap(SimulatorBasic)
+                #Simulator = SimulatorMap(SimulatorBasic)
+                #simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
+                simulator = SimulatorMap(SimulatorBasic, m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
             else:
                 from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
-                Simulator = SimulatorMap(SimulatorDifferentialDrive)
-            simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
+                #Simulator = SimulatorMap(SimulatorDifferentialDrive)
+                #simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
+                simulator = SimulatorMap(SimulatorDifferentialDrive, m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
+            
             if args.controller == "pid":
                 from PathTracking.pid_basic import ControllerPIDBasic as Controller
                 controller = Controller()
@@ -181,8 +185,9 @@ if __name__ == "__main__":
                 raise NameError("Unknown controller!!")
         elif args.simulator == "bicycle":
             from Simulation.simulator_bicycle import SimulatorBicycle 
-            Simulator = SimulatorMap(SimulatorBicycle)
-            simulator = Simulator(m=m, l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
+            #Simulator = SimulatorMap(SimulatorBicycle)
+            #simulator = Simulator(m=m, l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
+            simulator = SimulatorMap(SimulatorBicycle, m=m, l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
             if args.controller == "pid":
                 from PathTracking.pid_bicycle import ControllerPIDBicycle as Controller
                 controller = Controller()
