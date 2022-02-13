@@ -11,21 +11,18 @@ from PathPlanning.cubic_spline import *
 nav_pos = None
 way_points = None
 path = None
+set_controller_path = False
 collision_count = 0
 start_pose = (100,200,0)
 pose = start_pose
 window_name = "Known Map Navigation Demo"
-simulator = None
-controller = None
-planner = None
-args = None
 
 ##############################
-# Util Function
+# Navigation
 ##############################
 # Mouse Click Callback
 def mouse_click(event, x, y, flags, param):
-    global control_type, plan_type, nav_pos, pose, path, m_dilate, way_points, controller
+    global control_type, plan_type, nav_pos, pose, path, m_dilate, way_points, set_controller_path
     if event == cv2.EVENT_LBUTTONUP:
         nav_pos_new = (x, m.shape[0]-y)
         if m_dilate[nav_pos_new[1], nav_pos_new[0]] > 0.5:
@@ -33,11 +30,8 @@ def mouse_click(event, x, y, flags, param):
             if len(way_points) > 1:
                 nav_pos = nav_pos_new
                 path = np.array(cubic_spline_2d(way_points, interval=4))
-                controller.set_path(path)
+                set_controller_path = True
 
-##############################
-# Navigation
-##############################
 def pos_int(p):
     return (int(p[0]), int(p[1]))
 
@@ -49,8 +43,8 @@ def render_path(img, nav_pos, way_points, path):
         cv2.line(img, pos_int(path[i]), pos_int(path[i+1]), (1.0,0.4,0.4), 1)
     return img
 
-def navigation():
-    global nav_pos, way_points, path, collision_count, init_pos, pose, args, controller, planner
+def navigation(args, simulator, controller, planner):
+    global nav_pos, way_points, path, collision_count, init_pos, pose
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, mouse_click)
     simulator.init_pose(start_pose)
@@ -62,6 +56,10 @@ def navigation():
         pose = (simulator.state.x, simulator.state.y, simulator.state.yaw)
         print("\rState: ", simulator, "| Goal:", nav_pos, end="\t")
         
+        if set_controller_path:
+            controller.set_path(path)
+            controller_set_path = False
+
         if path is not None and collision_count == 0:
             end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
             if args.simulator == "basic" or args.simulator == "dd":
@@ -213,4 +211,4 @@ if __name__ == "__main__":
     except:
         raise
     
-    navigation()
+    navigation(args, simulator, controller, planner)
