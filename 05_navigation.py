@@ -102,9 +102,9 @@ def navigation():
         else:
             command = None
 
-        _, collision = simulator.step(command)
+        _, info = simulator.step(command)
         # Collision Handling
-        if collision:
+        if info["collision"]:
             collision_count = 1
         if collision_count > 0:
             if args.simulator == "basic":

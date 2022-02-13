@@ -38,7 +38,7 @@ class SimulatorMap(SimulatorBasic, SimulatorDifferentialDrive, SimulatorBicycle)
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))
             self.car_box = compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
-        return self.state, collision
+        return self.state, {"collision":collision}
 
     def render(self):
         img = np.repeat(self.m[...,np.newaxis],3,2)

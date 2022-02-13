@@ -26,7 +26,7 @@ def SimulatorMap(simulator_class):
             return collision
             
         def step(self, command):
-            state_next = self.simulator_class.step(self, command, update_state=False)
+            state_next, info = self.simulator_class.step(self, command, update_state=False)
             car_box_next = compute_car_box(self.car_w, self.car_f, self.car_r, state_next.pose())
             collision = self.collision_detect(self.m, car_box_next)
             if collision:
@@ -36,7 +36,8 @@ def SimulatorMap(simulator_class):
                 self.state = state_next
                 self.record.append((self.state.x, self.state.y, self.state.yaw))
                 self.car_box = compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
-            return self.state, collision
+            info["collision"] = collision
+            return self.state, info
 
         def render(self):
             img = np.repeat(self.m[...,np.newaxis],3,2)

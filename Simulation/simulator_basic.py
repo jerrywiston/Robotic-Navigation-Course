@@ -75,7 +75,7 @@ class SimulatorBasic(Simulator):
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))
             self.car_box = utils.compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
-        return state_next
+        return state_next, {}
     
     def __str__(self):
         return self.state.__str__()
