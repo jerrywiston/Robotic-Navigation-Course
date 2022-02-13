@@ -57,9 +57,10 @@ class SimulatorBicycle(Simulator):
         self.record = []
 
     def step(self, command, update_state=True):
-        # Check Control Command
-        self.a = command.a if command.a is not None else self.a
-        self.delta = command.delta if command.delta is not None else self.delta
+        if command is not None:
+            # Check Control Command
+            self.a = command.a if command.a is not None else self.a
+            self.delta = command.delta if command.delta is not None else self.delta
 
         # Control Constrain
         if self.a > self.a_range:

@@ -53,9 +53,10 @@ class SimulatorDifferentialDrive(Simulator):
         self.record = []
 
     def step(self, command, update_state=True):
-        # Check Control Command
-        self.lw = command.lw if command.lw is not None else self.lw
-        self.rw = command.rw if command.rw is not None else self.rw
+        if command is not None:
+            # Check Control Command
+            self.lw = command.lw if command.lw is not None else self.lw
+            self.rw = command.rw if command.rw is not None else self.rw
 
         # Control Constrain
         if self.lw > self.lw_range:

@@ -53,9 +53,10 @@ class SimulatorBasic(Simulator):
         self.record = []
 
     def step(self, command, update_state=True):
-        # Check Control Command
-        self.v = command.v if command.v is not None else self.v
-        self.w = command.w if command.w is not None else self.w
+        if command is not None:
+            # Check Control Command
+            self.v = command.v if command.v is not None else self.v
+            self.w = command.w if command.w is not None else self.w
 
         # Control Constrain
         if self.v > self.v_range:

@@ -5,7 +5,7 @@ sys.path.append("..")
 import PathPlanning.utils as utils
 
 class PlannerRRTStar():
-    def __init__(self, m, extend_len):
+    def __init__(self, m, extend_len=20):
         self.map = m
         self.extend_len = extend_len 
 

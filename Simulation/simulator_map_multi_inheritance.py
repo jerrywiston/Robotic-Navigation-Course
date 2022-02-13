@@ -8,8 +8,8 @@ from Simulation.utils import Bresenham, compute_car_box
 sys.path.append("..")
 
 class SimulatorMap(SimulatorBasic, SimulatorDifferentialDrive, SimulatorBicycle):
-    def __init__(self, simulator_class, m, *args):
-        simulator_class.__init__(self, *args)
+    def __init__(self, simulator_class, m, **kargs):
+        simulator_class.__init__(self, **kargs)
         self.simulator_class = simulator_class
         self.m = m
 

@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 import cv2
-from Simulation.utils import ControlCommand
+from Simulation.utils import ControlState
 from Simulation.simulator_map_function import SimulatorMap
 from PathPlanning.cubic_spline import *
 
@@ -25,20 +25,24 @@ args = None
 ##############################
 # Mouse Click Callback
 def mouse_click(event, x, y, flags, param):
-    global control_type, plan_type, nav_pos, pos, path, m_dilate, way_points, controller
+    global control_type, plan_type, nav_pos, pose, path, m_dilate, way_points, controller
     if event == cv2.EVENT_LBUTTONUP:
         nav_pos_new = (x, m.shape[0]-y)
         if m_dilate[nav_pos_new[1], nav_pos_new[0]] > 0.5:
-            way_points = planner.planning((pos[0],pos[1]), nav_pos_new, 20)
+            way_points = planner.planning((pose[0],pose[1]), nav_pos_new, 20)
             if len(way_points) > 1:
                 nav_pos = nav_pos_new
                 path = np.array(cubic_spline_2d(way_points, interval=4))
                 controller.set_path(path)
 
+##############################
+# Navigation
+##############################
 def pos_int(p):
     return (int(p[0]), int(p[1]))
 
 def navigation():
+    global nav_pos, way_points, path, collision_count, init_pos, pose, args, controller, planner
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, mouse_click)
     simulator.init_pose(start_pose)
@@ -51,35 +55,66 @@ def navigation():
         print("\rState: ", simulator, "| Goal:", nav_pos, end="\t")
         
         if path is not None and collision_count == 0:
-            end_dist = np.hypot(path[-1,0]-simulator.x, path[-1,1]-simulator.y)
-            if args.simulator == "wmr":
+            end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
+            if args.simulator == "basic":
                 # Longitude
                 if end_dist > 5:
                     next_v = 20
                 else:
                     next_v = 0
                 # Lateral
-                state = {"x":simulator.x, "y":simulator.y, "yaw":simulator.yaw, "v":simulator.v, "dt":simulator.dt}
-                next_w, target = controller.feedback(state)
-                simulator.control(next_v, next_w)
+                info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "v":simulator.state.v, "dt":simulator.dt}
+                next_w, target = controller.feedback(info)
+                command = ControlState("basic", next_v, next_w)
+                
             elif args.simulator == "bicycle":
                 # Longitude P-Control
                 target_v = 20 if end_dist > 25 else 0
-                next_a = 1*(target_v - simulator.v)
+                next_a = 1*(target_v - simulator.state.v)
 
                 # Lateral Control
-                state = {"x":simulator.x, "y":simulator.y, "yaw":simulator.yaw, "delta":simulator.delta, "v":simulator.v, "l":simulator.l, "dt":simulator.dt}
-                next_delta, target = controller.feedback(state)
-                simulator.control(next_a, next_delta)
+                info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "delta":simulator.delta, "v":simulator.state.v, "l":simulator.l, "dt":simulator.dt}
+                next_delta, target = controller.feedback(info)
+                command = ControlState("bicycle", next_a, next_delta)
             else:
-                exit()
+                exit()            
+        else:
+            command = None
 
-            # Render Path
+        _, collision = simulator.step(command)
+        # Collision Handling
+        if collision:
+            collision_count = 1
+        if collision_count > 0:
+            target_v = -25
+            next_a = 0.2*(target_v - simulator.state.v)
+            simulator.step(ControlState("bicycle", next_a, 0))
+            collision_count += 1
+            if collision_count > 10:
+                way_points = planner.planning((pose[0],pose[1]), nav_pos, 20)
+                path = np.array(cubic_spline_2d(way_points, interval=4))
+                controller.set_path(path)
+                collision_count = 0
+        
+        # Render Path
+        img_ = simulator.render()
+        if nav_pos is not None:
+            cv2.circle(img_,nav_pos,5,(0.5,0.5,1.0),3)
+        if way_points is not None:
             for i in range(len(way_points)):    # Draw Way Points
                 cv2.circle(img_, pos_int(way_points[i]), 3, (1.0,0.4,0.4), 1)
             for i in range(len(path)-1):    # Draw Interpolating Curve
                 cv2.line(img_, pos_int(path[i]), pos_int(path[i+1]), (1.0,0.4,0.4), 1)
             cv2.circle(img_,(int(target[0]),int(target[1])),3,(1,0.3,0.7),2)    # Draw Target Points
+
+        img = cv2.flip(img_, 0)
+        cv2.imshow(window_name, img)
+        k = cv2.waitKey(1)
+        if k == ord('r'):
+            simulator.init_state(start)
+        if k == 27:
+            print()
+            break
 
 if __name__ == "__main__":
     # Argument Parser
@@ -109,27 +144,37 @@ if __name__ == "__main__":
             else:
                 from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
                 Simulator = SimulatorMap(SimulatorDifferentialDrive)
+            simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
             if args.controller == "pid":
                 from PathTracking.pid_basic import ControllerPIDBasic as Controller
+                controller = Controller()
             elif args.controller == "pure_pursuit":
                 from PathTracking.pure_pursuit_basic import ControllerPurePursuitBasic as Controller
+                controller = Controller(Ldc=1)
             elif args.controller == "stanley":
                 from PathTracking.stanley_basic import ControllerStanleyBasic as Controller
+                controller = Controller()
             elif args.controller == "lqr":
                 from PathTracking.lqr_basic import ControllerLQRBasic as Controller
+                controller = Controller()
             else:
                 raise NameError("Unknown controller!!")
         elif args.simulator == "bicycle":
             from Simulation.simulator_bicycle import SimulatorBicycle 
             Simulator = SimulatorMap(SimulatorBicycle)
+            simulator = Simulator(m=m, l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
             if args.controller == "pid":
                 from PathTracking.pid_bicycle import ControllerPIDBicycle as Controller
+                controller = Controller()
             elif args.controller == "pure_pursuit":
                 from PathTracking.pure_pursuit_bicycle import ControllerPurePursuitBicycle as Controller
+                controller = Controller(Lfc=1)
             elif args.controller == "stanley":
                 from PathTracking.stanley_bicycle import ControllerStanleyBicycle as Controller
+                controller = Controller()
             elif args.controller == "lqr":
                 from PathTracking.lqr_bicycle import ControllerLQRBicycle as Controller
+                controller = Controller()
             else:
                 raise NameError("Unknown controller!!")
         else:
@@ -144,5 +189,8 @@ if __name__ == "__main__":
         else:
             print("Unknown planner !!")
             exit(0)
+        planner = Planner(m_dilate)
     except:
         raise
+    
+    navigation()

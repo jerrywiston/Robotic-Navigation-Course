@@ -6,8 +6,8 @@ sys.path.append("..")
 
 def SimulatorMap(simulator_class):
     class SimulatorMapClass(simulator_class):
-        def __init__(self, m, *args):
-            simulator_class.__init__(self, *args)
+        def __init__(self, m, **kargs):
+            simulator_class.__init__(self, **kargs)
             self.simulator_class = simulator_class
             self.m = m
 
