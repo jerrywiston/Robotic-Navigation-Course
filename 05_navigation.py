@@ -8,22 +8,22 @@ from PathPlanning.cubic_spline import *
 ##############################
 # Global Variables
 ##############################
+pose = None
 nav_pos = None
 way_points = None
 path = None
+m_cspace = None
 set_controller_path = False
-collision_count = 0
-pose = None
 
 ##############################
 # Navigation
 ##############################
 # Mouse Click Callback
 def mouse_click(event, x, y, flags, param):
-    global control_type, plan_type, nav_pos, pose, path, m_dilate, way_points, set_controller_path
+    global pose, nav_pos, way_points, path, m_cspace, set_controller_path
     if event == cv2.EVENT_LBUTTONUP:
         nav_pos_new = (x, m.shape[0]-y)
-        if m_dilate[nav_pos_new[1], nav_pos_new[0]] > 0.5:
+        if m_cspace[nav_pos_new[1], nav_pos_new[0]] > 0.5:
             way_points = planner.planning((pose[0],pose[1]), nav_pos_new, 20)
             if len(way_points) > 1:
                 nav_pos = nav_pos_new
@@ -42,14 +42,15 @@ def render_path(img, nav_pos, way_points, path):
     return img
 
 def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
-    global nav_pos, way_points, path, collision_count, init_pos, pose
+    global pose, nav_pos, way_points, path
     # Initialize
     window_name = "Known Map Navigation Demo"
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, mouse_click)
-    pose = start_pose
     simulator.init_pose(start_pose)
     command = ControlState(args.simulator, None, None)
+    pose = start_pose
+    collision_count = 0
     # Main Loop
     while(True):
         # Update State
@@ -151,7 +152,7 @@ if __name__ == "__main__":
     m = np.asarray(img)
     m = cv2.cvtColor(m, cv2.COLOR_RGB2GRAY)
     m = m.astype(float) / 255.
-    m_dilate = 1-cv2.dilate(1-m, np.ones((40,40))) # Configuration-Space
+    m_cspace = 1-cv2.dilate(1-m, np.ones((40,40))) # Configuration-Space
 
     # Select Simulator, Controller, and Planner
     try:
@@ -208,7 +209,7 @@ if __name__ == "__main__":
         else:
             print("Unknown planner !!")
             exit(0)
-        planner = Planner(m_dilate)
+        planner = Planner(m_cspace)
     except:
         raise
     
