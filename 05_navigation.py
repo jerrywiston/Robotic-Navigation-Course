@@ -64,21 +64,34 @@ def navigation():
         
         if path is not None and collision_count == 0:
             end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
-            if args.simulator == "basic":
+            if args.simulator == "basic" or args.simulator == "dd":
                 # Longitude
                 if end_dist > 5:
                     next_v = 20
                 else:
                     next_v = 0
+                target_v = 20 if end_dist > 25 else 0
+                kp = 1.5
+                next_a = kp*(target_v - simulator.state.v)
+                next_v = simulator.state.v + next_a*0.1
                 # Lateral
                 info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "v":simulator.state.v, "dt":simulator.dt}
                 next_w, target = controller.feedback(info)
-                command = ControlState("basic", next_v, next_w)
+                if args.simulator == "basic":
+                    command = ControlState("basic", next_v, next_w)
+                else:
+                    r = simulator.wu/2
+                    next_lw = next_v / r - np.deg2rad(next_w)*simulator.l/r
+                    next_lw = np.rad2deg(next_lw)
+                    next_rw = next_v / r + np.deg2rad(next_w)*simulator.l/r
+                    next_rw = np.rad2deg(next_rw)
+                    command = ControlState("dd", next_lw, next_rw)
                 
             elif args.simulator == "bicycle":
                 # Longitude P-Control
                 target_v = 20 if end_dist > 25 else 0
-                next_a = 1*(target_v - simulator.state.v)
+                kp = 1
+                next_a = kp*(target_v - simulator.state.v)
 
                 # Lateral Control
                 info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "delta":simulator.delta, "v":simulator.state.v, "l":simulator.l, "dt":simulator.dt}
@@ -157,7 +170,7 @@ if __name__ == "__main__":
                 controller = Controller()
             elif args.controller == "pure_pursuit":
                 from PathTracking.pure_pursuit_basic import ControllerPurePursuitBasic as Controller
-                controller = Controller(Ldc=1)
+                controller = Controller(Lfc=1)
             elif args.controller == "stanley":
                 from PathTracking.stanley_basic import ControllerStanleyBasic as Controller
                 controller = Controller()
