@@ -91,7 +91,7 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
                 next_a = kp*(target_v - simulator.state.v)
 
                 # Lateral Control
-                info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "delta":simulator.delta, "v":simulator.state.v, "l":simulator.l, "dt":simulator.dt}
+                info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "delta":simulator.cstate.delta, "v":simulator.state.v, "l":simulator.l, "dt":simulator.dt}
                 next_delta, target = controller.feedback(info)
                 command = ControlState("bicycle", next_a, next_delta)
             else:
