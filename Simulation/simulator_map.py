@@ -15,6 +15,12 @@ class SimulatorMap(SimulatorBasic, SimulatorDifferentialDrive, SimulatorBicycle)
         self.simulator_class = simulator_class
         self.m = m
 
+    def init_pose(self, pose):
+        state, info = self.simulator_class.init_pose(self, pose)
+        collision = self.collision_detect(self.m, self.car_box)
+        info["collision"] = collision
+        return state, info
+
     def collision_detect(self, m, car_box):
         p1,p2,p3,p4 = car_box
         l1 = Bresenham(p1[0], p2[0], p1[1], p2[1])
@@ -58,6 +64,12 @@ class SimulatorMapLidar(SimulatorMap):
         self.lidar = LidarModel(*lidar_params)
         self.sense_data = self.lidar.measure(self.m, self.state.pose())
     
+    def init_pose(self, pose):
+        state, info = SimulatorMap.init_pose(self, pose)
+        self.sense_data = self.lidar.measure(self.m, self.state.pose())
+        info["lidar"] = self.sense_data
+        return state, info
+
     def step(self, command):
         state_next, info = SimulatorMap.step(self, command)
         self.sense_data = self.lidar.measure(self.m, self.state.pose())

@@ -2,7 +2,12 @@ import argparse
 import numpy as np
 import cv2
 from Simulation.utils import ControlState
-from Simulation.simulator_map import SimulatorMap, SimulatorMapLidar
+from Simulation.simulator_map import SimulatorMapLidar
+from Slam.utils import *
+from Slam.icp_2d import *
+
+def odometry(pts1, pts2):
+    pass
 
 # Basic Kinematic Model
 def run_basic(m, use_lidar):
@@ -13,21 +18,23 @@ def run_basic(m, use_lidar):
     print("[A] Increase angular velocity. (Anti-Clockwise)")
     print("[D] Decrease angular velocity. (Clockwise)")
     print("====================")
-    if use_lidar:
-        simulator = SimulatorMapLidar(SimulatorBasic, m)
-    else:
-        simulator = SimulatorMap(SimulatorBasic, m)
-    simulator.init_pose((100,200,0))
+    lidar_params = [121,-120.0,120.0,250.0]
+    simulator = SimulatorMapLidar(SimulatorBasic, m, lidar_params)
+    _, info = simulator.init_pose((100,200,0))
+    pose_rec = [simulator.state.pose()]
+    lidar_rec = [np.array(EndPoint((0,0,0), lidar_params, info["lidar"]))]
+    count = 0
     while(True):
+        count += 1
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlState(args.simulator, None, simulator.w+5)
+            command = ControlState(args.simulator, None, simulator.cstate.w+5)
         elif k == ord("d"):
-            command = ControlState(args.simulator, None, simulator.w-5)
+            command = ControlState(args.simulator, None, simulator.cstate.w-5)
         elif k == ord("w"):
-            command = ControlState(args.simulator, simulator.v+4, None)
+            command = ControlState(args.simulator, simulator.cstate.v+4, None)
         elif k == ord("s"):
-            command = ControlState(args.simulator, simulator.v-4, None)
+            command = ControlState(args.simulator, simulator.cstate.v-4, None)
         elif k == 27:
             print()
             break
@@ -38,6 +45,12 @@ def run_basic(m, use_lidar):
         img = simulator.render()
         img = cv2.flip(img, 0)
         cv2.imshow("Motion Model", img)
+
+        if count % 10 == 0:
+            count = 0
+            pose = simulator.state.pose()
+            pts = np.array(EndPoint((0,0,0), lidar_params, info["lidar"]))
+            odometry(lidar_rec[-1], pts)
         
 # Diferential-Drive Kinematic Model
 def run_ddv(m, use_lidar):
@@ -48,21 +61,19 @@ def run_ddv(m, use_lidar):
     print("[D] Decrease angular velocity of right wheel.")
     print("[E] Increase angular velocity of right wheel.")
     print("====================")
-    if use_lidar:
-        simulator = SimulatorMapLidar(SimulatorDifferentialDrive, m)
-    else:
-        simulator = SimulatorMap(SimulatorDifferentialDrive, m)
+    lidar_params = [121,-120,120,250]
+    simulator = SimulatorMapLidar(SimulatorDifferentialDrive, m, lidar_params)
     simulator.init_pose((100,200,0))
     while(True):
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlState(args.simulator, simulator.lw-30, None)
+            command = ControlState(args.simulator, simulator.cstate.lw-30, None)
         elif k == ord("d"):
-            command = ControlState(args.simulator, None, simulator.rw-30)
+            command = ControlState(args.simulator, None, simulator.cstate.rw-30)
         elif k == ord("q"):
-            command = ControlState(args.simulator, simulator.lw+30, None)
+            command = ControlState(args.simulator, simulator.cstate.lw+30, None)
         elif k == ord("e"):
-            command = ControlState(args.simulator, None, simulator.rw+30)
+            command = ControlState(args.simulator, None, simulator.cstate.rw+30)
         elif k == 27:
             print()
             break
@@ -84,22 +95,20 @@ def run_bicycle(m, use_lidar):
     print("[D] Wheel turn clockwise.")
     print("====================")
     from Simulation.simulator_bicycle import SimulatorBicycle
-    if use_lidar:
-        simulator = SimulatorMapLidar(SimulatorBicycle, m)
-    else:
-        simulator = SimulatorMap(SimulatorBicycle, m)
+    lidar_params = [121,-120,120,250]
+    simulator = SimulatorMapLidar(SimulatorBicycle, m, lidar_params)
     simulator.init_pose((100,200,0))
     command = ControlState(args.simulator, None, None)
     while(True):
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlState(args.simulator, 0, simulator.delta+5)
+            command = ControlState(args.simulator, 0, simulator.cstate.delta+5)
         elif k == ord("d"):
-            command = ControlState(args.simulator, 0, simulator.delta-5)
+            command = ControlState(args.simulator, 0, simulator.cstate.delta-5)
         elif k == ord("w"):
-            command = ControlState(args.simulator, simulator.a+10, None)
+            command = ControlState(args.simulator, simulator.cstate.a+10, None)
         elif k == ord("s"):
-            command = ControlState(args.simulator, simulator.a-10, None)
+            command = ControlState(args.simulator, simulator.cstate.a-10, None)
         elif k == 27:
             print()
             break

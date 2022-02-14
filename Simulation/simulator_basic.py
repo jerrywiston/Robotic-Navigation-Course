@@ -49,7 +49,9 @@ class SimulatorBasic(Simulator):
     def init_pose(self, pose):
         self.state.update(pose[0], pose[1], pose[2])
         self.cstate = ControlState(self.control_type, 0.0, 0.0)
+        self.car_box = utils.compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
         self.record = []
+        return self.state, {}
 
     def step(self, command, update_state=True):
         if command is not None:
@@ -76,7 +78,7 @@ class SimulatorBasic(Simulator):
         return state_next, {}
     
     def __str__(self):
-        return self.state.__str__()
+        return self.state.__str__() + " " + self.cstate.__str__()
 
     def render(self, img=None):
         if img is None:

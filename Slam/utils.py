@@ -32,7 +32,7 @@ def Bresenham(x0, x1, y0, y1):
 def EndPoint(pose, lidar_params, sensor_data, skip_max=False):
     pts_list = []
     inter = (lidar_params[2] - lidar_params[1]) / (lidar_params[0]-1)
-    for i in range(lidar_params[0]):
+    for i in range(int(lidar_params[0])):
         if skip_max and sensor_data[i] == lidar_params[3]:
             continue
         theta = pose[2] + lidar_params[1] + i*inter
