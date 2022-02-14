@@ -64,7 +64,7 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
 
         if path is not None and collision_count == 0:
             end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
-            if args.simulator == "basic" or args.simulator == "diff_drive":
+            if args.simulator == "diff_drive":
                 # Longitude
                 if end_dist > 5:
                     next_v = 20
@@ -104,8 +104,8 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
         if info["collision"]:
             collision_count = 1
         if collision_count > 0:
-            if args.simulator == "basic":
-                simulator.step(ControlState("basic", -25, 0))
+            if args.simulator == "diff_drive":
+                simulator.step(ControlState("diff_drive", -25, 0))
             elif args.simulator == "bicycle":
                 target_v = -25
                 next_a = 0.2*(target_v - simulator.state.v)
