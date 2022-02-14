@@ -10,11 +10,13 @@ class LidarModel:
             start_angle = -120.0,
             end_angle = 120.0,
             max_dist = 250.0,
+            trace_step = 5
         ):
         self.sensor_size = sensor_size
         self.start_angle = start_angle
         self.end_angle = end_angle
         self.max_dist = max_dist
+        self.trace_step = trace_step
     
     def measure(self, img_map, pose):
         if len(img_map.shape) > 2:
@@ -33,14 +35,29 @@ class LidarModel:
         plist = Bresenham(x0, x1, y0, y1)
         i = 0
         dist = self.max_dist
-        for p in plist:
+        for i in range(0,len(plist),self.trace_step):
+            p = plist[i]
             if p[1] >= img_map.shape[0] or p[0] >= img_map.shape[1] or p[1]<0 or p[0]<0:
                 continue
             if img_map[p[1], p[0]] < 0.5:
-                tmp = np.power(float(p[0]) - pose[0], 2) + np.power(float(p[1]) - pose[1], 2)
-                tmp = np.sqrt(tmp)
-                if tmp < dist:
-                    dist = tmp
+                if self.trace_step == 1:
+                    p_temp = plist[i-1] if i>0 else p
+                    dist = np.power(float(p_temp[0]) - pose[0], 2) + np.power(float(p_temp[1]) - pose[1], 2)
+                    dist = np.sqrt(dist)
+                    return dist
+                # Hierarchical Tracing
+                else:
+                    start_id = i - self.trace_step
+                    start_id = 0 if start_id < 0 else start_id
+                    for j in range(start_id, i+1):
+                        p = plist[j]
+                        if p[1] >= img_map.shape[0] or p[0] >= img_map.shape[1] or p[1]<0 or p[0]<0:
+                            continue
+                        if img_map[p[1], p[0]] < 0.5:
+                            p_temp = plist[j-1] if j>0 else p
+                            dist = np.power(float(p_temp[0]) - pose[0], 2) + np.power(float(p_temp[1]) - pose[1], 2)
+                            dist = np.sqrt(dist)
+                            return dist
         return dist
 
 if __name__ == "__main__":
