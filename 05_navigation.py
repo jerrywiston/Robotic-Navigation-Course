@@ -136,7 +136,7 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="basic", help="diff_drive/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="diff_drive", help="diff_drive/bicycle")
     parser.add_argument("-c", "--controller", type=str, default="pure_pursuit", help="pid/pure_pursuit/stanley/lqr")
     parser.add_argument("-p", "--planner", type=str, default="a_star", help="a_star/rrt/rrt_star")
     parser.add_argument("-m", "--map", type=str, default="Maps/map1.png", help="image file name")
