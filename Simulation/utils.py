@@ -49,11 +49,11 @@ class ControlState:
     
     def __str__(self):
         if self.control_type == "basic":
-            return "[Command] v={}, w={}".format(self.v, self.w)
+            return "[ControlState] v={}, w={}".format(self.v, self.w)
         elif self.control_type == "diff_drive": # Differential Drive Vehicle
-            return "[Command] lw={}, rw={}".format(self.lw, self.rw)
+            return "[ControlState] lw={}, rw={}".format(self.lw, self.rw)
         elif self.control_type == "bicycle":
-            return "[Command] a={}, delta={}".format(self.a, self.delta)
+            return "[ControlState] a={}, delta={}".format(self.a, self.delta)
 
 def rot_pos(x,y,phi_):
     phi = np.deg2rad(phi_)

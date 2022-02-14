@@ -112,11 +112,12 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
                 simulator.step(ControlState("bicycle", next_a, 0))
             collision_count += 1
             if collision_count > 10:
-                way_points = planner.planning((pose[0],pose[1]), nav_pos, 20)
-                if len(way_points) > 1:
-                    path = np.array(cubic_spline_2d(way_points, interval=4))
-                    controller.set_path(path)
-                    collision_count = 0
+                if nav_pos is not None:
+                    way_points = planner.planning((pose[0],pose[1]), nav_pos, 20)
+                    if len(way_points) > 1:
+                        path = np.array(cubic_spline_2d(way_points, interval=4))
+                        controller.set_path(path)
+                        collision_count = 0
         
         # Render Path
         img = simulator.render()

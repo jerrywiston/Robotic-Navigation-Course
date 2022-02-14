@@ -21,13 +21,13 @@ def run_basic(m, use_lidar):
     while(True):
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlState(args.simulator, None, simulator.w+5)
+            command = ControlState(args.simulator, None, simulator.cstate.w+5)
         elif k == ord("d"):
-            command = ControlState(args.simulator, None, simulator.w-5)
+            command = ControlState(args.simulator, None, simulator.cstate.w-5)
         elif k == ord("w"):
-            command = ControlState(args.simulator, simulator.v+4, None)
+            command = ControlState(args.simulator, simulator.cstate.v+4, None)
         elif k == ord("s"):
-            command = ControlState(args.simulator, simulator.v-4, None)
+            command = ControlState(args.simulator, simulator.cstate.v-4, None)
         elif k == 27:
             print()
             break
@@ -56,13 +56,13 @@ def run_diff_drive(m, use_lidar):
     while(True):
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlState(args.simulator, simulator.lw-30, None)
+            command = ControlState(args.simulator, simulator.cstate.lw-30, None)
         elif k == ord("d"):
-            command = ControlState(args.simulator, None, simulator.rw-30)
+            command = ControlState(args.simulator, None, simulator.cstate.rw-30)
         elif k == ord("q"):
-            command = ControlState(args.simulator, simulator.lw+30, None)
+            command = ControlState(args.simulator, simulator.cstate.lw+30, None)
         elif k == ord("e"):
-            command = ControlState(args.simulator, None, simulator.rw+30)
+            command = ControlState(args.simulator, None, simulator.cstate.rw+30)
         elif k == 27:
             print()
             break
@@ -93,13 +93,13 @@ def run_bicycle(m, use_lidar):
     while(True):
         k = cv2.waitKey(1)
         if k == ord("a"):
-            command = ControlState(args.simulator, 0, simulator.delta+5)
+            command = ControlState(args.simulator, 0, simulator.cstate.delta+5)
         elif k == ord("d"):
-            command = ControlState(args.simulator, 0, simulator.delta-5)
+            command = ControlState(args.simulator, 0, simulator.cstate.delta-5)
         elif k == ord("w"):
-            command = ControlState(args.simulator, simulator.a+10, None)
+            command = ControlState(args.simulator, simulator.cstate.a+10, None)
         elif k == ord("s"):
-            command = ControlState(args.simulator, simulator.a-10, None)
+            command = ControlState(args.simulator, simulator.cstate.a-10, None)
         elif k == 27:
             print()
             break

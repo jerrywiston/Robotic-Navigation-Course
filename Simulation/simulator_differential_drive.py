@@ -24,6 +24,7 @@ class SimulatorDifferentialDrive(Simulator):
             car_r = 10,
             dt = 0.1
         ):
+        self.control_type = "diff_drive"
         # Control Constrain
         self.lw_range = lw_range
         self.rw_range = rw_range
@@ -42,35 +43,32 @@ class SimulatorDifferentialDrive(Simulator):
 
         # Initialize State
         self.state = State()
+        self.cstate = ControlState(self.control_type, 0.0, 0.0)
         self.car_box = utils.compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
-        self.lw = 0.0
-        self.rw = 0.0
     
     def init_pose(self, pose):
         self.state.update(pose[0], pose[1], pose[2])
-        self.lw = 0.0
-        self.rw = 0.0
+        self.cstate = ControlState(self.control_type, 0.0, 0.0)
         self.record = []
 
     def step(self, command, update_state=True):
         if command is not None:
             # Check Control Command
-            self.lw = command.lw if command.lw is not None else self.lw
-            self.rw = command.rw if command.rw is not None else self.rw
+            self.cstate.lw = command.lw if command.lw is not None else self.cstate.lw
+            self.cstate.rw = command.rw if command.rw is not None else self.cstate.rw
 
         # Control Constrain
-        if self.lw > self.lw_range:
+        if self.cstate.lw > self.lw_range:
             self.lw = self.lw_range
-        elif self.lw < -self.lw_range:
-            self.lw = -self.lw_range
-        if self.rw > self.rw_range:
-            self.rw = self.rw_range
-        elif self.rw < -self.rw_range:
-            self.rw = -self.rw_range
+        elif self.cstate.lw < -self.lw_range:
+            self.cstate.lw = -self.lw_range
+        if self.cstate.rw > self.rw_range:
+            self.cstate.rw = self.rw_range
+        elif self.cstate.rw < -self.rw_range:
+            self.cstate.rw = -self.rw_range
 
         # Motion
-        cstate = ControlState("diff_drive", self.lw, self.rw)
-        state_next = self.model.step(self.state, cstate)
+        state_next = self.model.step(self.state, self.cstate)
         if update_state:
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))
@@ -78,7 +76,7 @@ class SimulatorDifferentialDrive(Simulator):
         return state_next, {}
     
     def __str__(self):
-        return self.state.__str__() + ", lw={:.4f}, rw={:.4f}".format(self.lw, self.rw)
+        return self.state.__str__() + " " + self.cstate.__str__()
 
     def render(self, img=None):
         if img is None:

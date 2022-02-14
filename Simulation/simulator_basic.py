@@ -24,6 +24,7 @@ class SimulatorBasic(Simulator):
             car_r = 10,
             dt = 0.1
         ):
+        self.control_type = "basic"
         # Control Constrain
         self.v_range = v_range
         self.w_range = w_range
@@ -42,35 +43,32 @@ class SimulatorBasic(Simulator):
 
         # Initialize State
         self.state = State()
+        self.cstate = ControlState(self.control_type, 0.0, 0.0)
         self.car_box = utils.compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
-        self.v = 0.0
-        self.w = 0.0
     
     def init_pose(self, pose):
         self.state.update(pose[0], pose[1], pose[2])
-        self.v = 0.0
-        self.w = 0.0
+        self.cstate = ControlState(self.control_type, 0.0, 0.0)
         self.record = []
 
     def step(self, command, update_state=True):
         if command is not None:
             # Check Control Command
-            self.v = command.v if command.v is not None else self.v
-            self.w = command.w if command.w is not None else self.w
+            self.cstate.v = command.v if command.v is not None else self.cstate.v 
+            self.cstate.w = command.w if command.w is not None else self.cstate.w
 
         # Control Constrain
-        if self.v > self.v_range:
-            self.v = self.v_range
-        elif self.v < -self.v_range:
-            self.v = -self.v_range
-        if self.w > self.w_range:
-            self.w = self.w_range
-        elif self.w < -self.w_range:
-            self.state.w = -self.w_range
+        if self.cstate.v > self.v_range:
+            self.cstate.v = self.v_range
+        elif self.cstate.v < -self.v_range:
+            self.cstate.v = -self.v_range
+        if self.cstate.w > self.w_range:
+            self.cstate.w = self.w_range
+        elif self.cstate.w < -self.w_range:
+            self.cstate.w = -self.w_range
 
         # Motion
-        cstate = ControlState("basic", self.v, self.w)
-        state_next = self.model.step(self.state, cstate)
+        state_next = self.model.step(self.state, self.cstate)
         if update_state:
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))

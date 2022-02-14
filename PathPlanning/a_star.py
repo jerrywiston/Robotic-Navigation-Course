@@ -73,9 +73,11 @@ class PlannerAStar():
         # Extract path
         path = []
         p = self.goal_node
+        if p is None:
+            return path
         while(True):
             path.insert(0,p)
-            if self.parent[p] == None:
+            if self.parent[p] is None:
                 break
             p = self.parent[p]
         if path[-1] != goal:

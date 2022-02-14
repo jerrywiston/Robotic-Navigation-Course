@@ -16,3 +16,4 @@ class Simulator:
     @abc.abstractmethod
     def render(self, img):
         return NotImplementedError
+        

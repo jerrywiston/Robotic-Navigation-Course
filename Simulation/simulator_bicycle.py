@@ -24,6 +24,7 @@ class SimulatorBicycle(Simulator):
             car_r = 8,
             dt = 0.1
         ):
+        self.control_type = "bicycle"
         # Control Constrain
         self.a_range = a_range
         self.delta_range = delta_range
@@ -46,31 +47,29 @@ class SimulatorBicycle(Simulator):
 
         # Initialize State
         self.state = State()
+        self.cstate = ControlState(self.control_type, 0.0, 0.0)
         self.car_box = utils.compute_car_box(self.car_w, self.car_f, self.car_r, self.state.pose())
-        self.a = 0.0
-        self.delta = 0.0
 
     def init_pose(self, pose):
         self.state.update(pose[0], pose[1], pose[2])
-        self.a = 0.0
-        self.delta = 0.0
+        self.cstate = ControlState(self.control_type, 0.0, 0.0)
         self.record = []
 
     def step(self, command, update_state=True):
         if command is not None:
             # Check Control Command
-            self.a = command.a if command.a is not None else self.a
-            self.delta = command.delta if command.delta is not None else self.delta
+            self.cstate.a = command.a if command.a is not None else self.cstate.a
+            self.cstate.delta = command.delta if command.delta is not None else self.cstate.delta
 
         # Control Constrain
-        if self.a > self.a_range:
-            self.a = self.a_range
-        elif self.a < -self.a_range:
-            self.a = -self.a_range
-        if self.delta > self.delta_range:
-            self.delta = self.delta_range
-        elif self.delta < -self.delta_range:
-            self.delta = -self.delta_range
+        if self.cstate.a > self.a_range:
+            self.cstate.a = self.a_range
+        elif self.cstate.a < -self.a_range:
+            self.cstate.a = -self.a_range
+        if self.cstate.delta > self.delta_range:
+            self.cstate.delta = self.delta_range
+        elif self.cstate.delta < -self.delta_range:
+            self.cstate.delta = -self.delta_range
         
         # State Constrain
         if self.state.v > self.v_range:
@@ -79,8 +78,7 @@ class SimulatorBicycle(Simulator):
             self.state.v = -self.v_range
         
         # Motion
-        cstate = ControlState("bicycle", self.a, self.delta)
-        state_next = self.model.step(self.state, cstate)
+        state_next = self.model.step(self.state, self.cstate)
         if update_state:
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))
@@ -88,7 +86,7 @@ class SimulatorBicycle(Simulator):
         return state_next, {}
 
     def __str__(self):
-        return self.state.__str__() + ", a={:.4f}, delta={:.4f}".format(self.a, self.delta)
+        return self.state.__str__() + " " + self.cstate.__str__()
 
     def render(self, img=None):
         if img is None:
@@ -122,8 +120,8 @@ class SimulatorBicycle(Simulator):
         w3 = utils.rot_pos( 0, self.d, -self.state.yaw) + np.array((self.state.x,self.state.y))
         w4 = utils.rot_pos( 0,-self.d, -self.state.yaw) + np.array((self.state.x,self.state.y))
         # 4 Wheels
-        img = utils.draw_rectangle(img,int(w1[0]),int(w1[1]),self.wu,self.wv,-self.state.yaw-self.delta)
-        img = utils.draw_rectangle(img,int(w2[0]),int(w2[1]),self.wu,self.wv,-self.state.yaw-self.delta)
+        img = utils.draw_rectangle(img,int(w1[0]),int(w1[1]),self.wu,self.wv,-self.state.yaw-self.cstate.delta)
+        img = utils.draw_rectangle(img,int(w2[0]),int(w2[1]),self.wu,self.wv,-self.state.yaw-self.cstate.delta)
         img = utils.draw_rectangle(img,int(w3[0]),int(w3[1]),self.wu,self.wv,-self.state.yaw)
         img = utils.draw_rectangle(img,int(w4[0]),int(w4[1]),self.wu,self.wv,-self.state.yaw)
         # Axle
