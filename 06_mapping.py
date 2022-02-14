@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 from Simulation.sensor_lidar import LidarModel
-import Mapping.utils
-from Mapping.grid_map import GridMap 
+import Slam.utils
+from Slam.grid_map import GridMap 
 
 if __name__ == "__main__":
     # Read Image
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     lidar = LidarModel(*lidar_param)
     pose = (100,200,0)
     sdata = lidar.measure(img, pose)
-    plist = Mapping.utils.EndPoint(pose, lidar_param, sdata)
+    plist = Slam.utils.EndPoint(pose, lidar_param, sdata)
     print(sdata)
 
     # Draw Map

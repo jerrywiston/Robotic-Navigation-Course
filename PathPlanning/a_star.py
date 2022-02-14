@@ -30,7 +30,6 @@ class PlannerAStar():
         self.parent[start] = None
         self.g[start] = 0
         self.h[start] = self._distance(start, goal)
-        node_goal = None
         while(1):
             min_dist = 99999
             min_id = -1
@@ -39,7 +38,8 @@ class PlannerAStar():
                 if f < min_dist:
                     min_dist = f
                     min_id = i
-
+            if len(self.queue) < 1:
+                break
             p = self.queue.pop(min_id)
             if self.map[p[1],p[0]]<0.5:
                 continue

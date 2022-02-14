@@ -80,7 +80,9 @@ class SimulatorDifferentialDrive(Simulator):
     def __str__(self):
         return self.state.__str__() + ", lw={:.4f}, rw={:.4f}".format(self.lw, self.rw)
 
-    def render(self, img=np.ones((600,600,3))):
+    def render(self, img=None):
+        if img is None:
+            img = np.ones((600,600,3))
         ########## Draw History ##########
         rec_max = 1000
         start = 0 if len(self.record)<rec_max else len(self.record)-rec_max

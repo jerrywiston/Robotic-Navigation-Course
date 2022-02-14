@@ -14,14 +14,7 @@ def run_basic():
     print("====================")
     simulator = Simulator()
     simulator.init_pose((300,300,0))
-    command = ControlState(args.simulator, None, None)
     while(True):
-        print("\r", simulator, end="\t")
-        img = np.ones((600,600,3))
-        simulator.step(command)
-        img = simulator.render(img)
-        img = cv2.flip(img, 0)
-        cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
         if k == ord("a"):
             command = ControlState(args.simulator, None, simulator.w+5)
@@ -36,7 +29,12 @@ def run_basic():
             break
         else:
             command = ControlState(args.simulator, None, None)
-
+        simulator.step(command)
+        print("\r", simulator, end="\t")
+        img = simulator.render()
+        img = cv2.flip(img, 0)
+        cv2.imshow("Motion Model", img)
+        
 # Diferential-Drive Kinematic Model
 def run_dd():
     from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
@@ -50,12 +48,6 @@ def run_dd():
     simulator.init_pose((300,300,0))
     command = ControlState(args.simulator, None, None)
     while(True):
-        print("\r", simulator, end="\t")
-        img = np.ones((600,600,3))
-        simulator.step(command)
-        img = simulator.render(img)
-        img = cv2.flip(img, 0)
-        cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
         if k == ord("a"):
             command = ControlState(args.simulator, simulator.lw-30, None)
@@ -70,7 +62,12 @@ def run_dd():
             break
         else:
             command = ControlState(args.simulator, None, None)
-
+        simulator.step(command)
+        print("\r", simulator, end="\t")
+        img = simulator.render()
+        img = cv2.flip(img, 0)
+        cv2.imshow("Motion Model", img)
+        
 # Bicycle Kinematic Model
 def run_bicycle():
     from Simulation.simulator_bicycle import SimulatorBicycle as Simulator
@@ -84,12 +81,6 @@ def run_bicycle():
     simulator.init_pose((300,300,0))
     command = ControlState(args.simulator, None, None)
     while(True):
-        print("\r", simulator, end="\t")
-        img = np.ones((600,600,3))
-        simulator.step(command)
-        img = simulator.render(img)
-        img = cv2.flip(img, 0)
-        cv2.imshow("Motion Model", img)
         k = cv2.waitKey(1)
         if k == ord("a"):
             command = ControlState(args.simulator, 0, simulator.delta+5)
@@ -104,7 +95,12 @@ def run_bicycle():
             break
         else:
             command = ControlState(args.simulator, 0, None)
-
+        simulator.step(command)
+        print("\r", simulator, end="\t")
+        img = simulator.render()
+        img = cv2.flip(img, 0)
+        cv2.imshow("Motion Model", img)
+        
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()

@@ -1,5 +1,5 @@
 import numpy as np
-import Mapping.utils as utils
+import Slam.utils as utils
 
 class GridMap:
     def __init__(self, map_param, gsize=3.0):
