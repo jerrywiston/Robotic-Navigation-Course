@@ -1,7 +1,9 @@
+import sys
 import numpy as np
 from sklearn.neighbors import KDTree
 import matplotlib.pyplot as plt
-import utils
+sys.path.append("..")
+import Slam.utils as utils
 import math
 
 def Transform(X, R, T):

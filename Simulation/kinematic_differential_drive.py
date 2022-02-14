@@ -17,8 +17,8 @@ class KinematicModelDifferentialDrive:
         w2 = np.rad2deg(self.r*np.deg2rad(cstate.lw) / (2*self.l))
         v = x1dot + x2dot
         w = w1 - w2
-        x = state.x + state.v * np.cos(np.deg2rad(state.yaw)) * self.dt
-        y = state.y + state.v * np.sin(np.deg2rad(state.yaw)) * self.dt
-        yaw = (state.yaw + state.w * self.dt) % 360
+        x = state.x + v * np.cos(np.deg2rad(state.yaw)) * self.dt
+        y = state.y + v * np.sin(np.deg2rad(state.yaw)) * self.dt
+        yaw = (state.yaw + w * self.dt) % 360
         state_next = State(x, y, yaw, v, w)
         return state_next

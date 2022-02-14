@@ -7,7 +7,7 @@ import PathTracking.utils
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="basic", help="diff_drive/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="diff_drive", help="diff_drive/bicycle")
     parser.add_argument("-c", "--controller", type=str, default="pure_pursuit", help="pid/pure_pursuit/stanley/lqr")
     parser.add_argument("-t", "--path_type", type=int, default=2, help="1/2")
     args = parser.parse_args()
@@ -108,7 +108,7 @@ if __name__ == "__main__":
                 "y":simulator.state.y, 
                 "yaw":simulator.state.yaw, 
                 "v":simulator.state.v,
-                "delta":simulator.delta,
+                "delta":simulator.cstate.delta,
                 "l":simulator.l, 
                 "dt":simulator.dt
             }

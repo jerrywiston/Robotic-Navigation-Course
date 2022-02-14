@@ -41,6 +41,14 @@ def render_path(img, nav_pos, way_points, path):
         cv2.line(img, pos_int(path[i]), pos_int(path[i+1]), (1.0,0.4,0.4), 1)
     return img
 
+def vw2motor(wu, l, next_v, next_w):
+    r = wu/2
+    next_lw = next_v / r - np.deg2rad(next_w)*l/r
+    next_lw = np.rad2deg(next_lw)
+    next_rw = next_v / r + np.deg2rad(next_w)*l/r
+    next_rw = np.rad2deg(next_rw)
+    return next_lw, next_rw
+
 def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
     global pose, nav_pos, way_points, path, set_controller_path
     # Initialize
@@ -78,18 +86,13 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
                 info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "v":simulator.state.v, "dt":simulator.dt}
                 next_w, target = controller.feedback(info)
                 # v,w to motor control
-                r = simulator.wu/2
-                next_lw = next_v / r - np.deg2rad(next_w)*simulator.l/r
-                next_lw = np.rad2deg(next_lw)
-                next_rw = next_v / r + np.deg2rad(next_w)*simulator.l/r
-                next_rw = np.rad2deg(next_rw)
+                next_lw, next_rw = vw2motor(simulator.wu, simulator.l, next_v, next_w)
                 command = ControlState("diff_drive", next_lw, next_rw)
             elif args.simulator == "bicycle":
                 # Longitude P-Control
                 target_v = 20 if end_dist > 25 else 0
                 kp = 1
                 next_a = kp*(target_v - simulator.state.v)
-
                 # Lateral Control
                 info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "delta":simulator.cstate.delta, "v":simulator.state.v, "l":simulator.l, "dt":simulator.dt}
                 next_delta, target = controller.feedback(info)
@@ -105,7 +108,8 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
             collision_count = 1
         if collision_count > 0:
             if args.simulator == "diff_drive":
-                simulator.step(ControlState("diff_drive", -25, 0))
+                next_lw, next_rw = vw2motor(simulator.wu, simulator.l, -10, 0)
+                simulator.step(ControlState("diff_drive", next_lw, next_rw))
             elif args.simulator == "bicycle":
                 target_v = -25
                 next_a = 0.2*(target_v - simulator.state.v)

@@ -1,4 +1,3 @@
-from re import L
 import sys
 import numpy as np
 import cv2
@@ -39,7 +38,7 @@ class SimulatorMap(SimulatorBasic, SimulatorDifferentialDrive, SimulatorBicycle)
         if collision:
             self.state.w = 0.0
             self.state.v = -0.5*self.state.v
-            state_next = self.simulator_class.step(self, ControlState(self.control_type, None, None))
+            state_next = self.simulator_class.step(self, ControlState(self.control_type, 0, 0))
         else:
             self.state = state_next
             self.record.append((self.state.x, self.state.y, self.state.yaw))
@@ -52,11 +51,11 @@ class SimulatorMap(SimulatorBasic, SimulatorDifferentialDrive, SimulatorBicycle)
         return img
 
 class SimulatorMapLidar(SimulatorMap):
-    def __init__(self, simulator_class, m, lidar_param=[31,-120.0,120.0,250], **kargs):
+    def __init__(self, simulator_class, m, lidar_params=[31,-120.0,120.0,250], **kargs):
         SimulatorMap.__init__(self, simulator_class, m, **kargs)
         self.simulator_class = simulator_class
-        self.lidar_param = lidar_param
-        self.lidar = LidarModel(*lidar_param)
+        self.lidar_param = lidar_params
+        self.lidar = LidarModel(*lidar_params)
         self.sense_data = self.lidar.measure(self.m, self.state.pose())
     
     def step(self, command):

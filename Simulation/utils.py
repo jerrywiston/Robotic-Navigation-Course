@@ -107,14 +107,16 @@ def Bresenham(x0, x1, y0, y1):
             y += sy
     return rec
 
-def EndPoint(pos, bot_param, sensor_data):
+def EndPoint(pose, lidar_params, sensor_data, skip_max=False):
     pts_list = []
-    inter = (bot_param[2] - bot_param[1]) / (bot_param[0]-1)
-    for i in range(bot_param[0]):
-        theta = pos[2] + bot_param[1] + i*inter
+    inter = (lidar_params[2] - lidar_params[1]) / (lidar_params[0]-1)
+    for i in range(lidar_params[0]):
+        if skip_max and sensor_data[i] == lidar_params[3]:
+            continue
+        theta = pose[2] + lidar_params[1] + i*inter
         pts_list.append(
-            [ pos[0]+sensor_data[i]*np.cos(np.deg2rad(theta)),
-              pos[1]+sensor_data[i]*np.sin(np.deg2rad(theta))] )
+            [ pose[0]+sensor_data[i]*np.cos(np.deg2rad(theta)),
+              pose[1]+sensor_data[i]*np.sin(np.deg2rad(theta))] )
     return pts_list
 
 def gaussian(x, mu, sig):
