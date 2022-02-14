@@ -40,7 +40,7 @@ def run_basic(m, use_lidar):
         cv2.imshow("Motion Model", img)
         
 # Diferential-Drive Kinematic Model
-def run_ddv(m, use_lidar):
+def run_diff_drive(m, use_lidar):
     from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
     print("Control Hint:")
     print("[A] Decrease angular velocity of left wheel.")
@@ -114,7 +114,7 @@ def run_bicycle(m, use_lidar):
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/diff_drive/bicycle")
     parser.add_argument("--lidar", action="store_true")
     args = parser.parse_args()
     # Read Map
@@ -127,8 +127,8 @@ if __name__ == "__main__":
     try:
         if args.simulator == "basic":
             run_basic(m, use_lidar=args.lidar)
-        elif args.simulator == "dd":
-            run_ddv(m, use_lidar=args.lidar)
+        elif args.simulator == "diff_drive":
+            run_diff_drive(m, use_lidar=args.lidar)
         elif args.simulator == "bicycle":
             run_bicycle(m, use_lidar=args.lidar)
         else:

@@ -30,13 +30,13 @@ class State:
 
 class ControlState:
     def __init__(self, control_type, *cstate): 
-        #  Support basic/bicycle/wmr
+        #  Support basic/diff_drive/bicycle
         self.control_type = control_type
         try:
             if control_type == "basic":
                 self.v = cstate[0]
                 self.w = cstate[1]
-            elif control_type == "dd":
+            elif control_type == "diff_drive":
                 self.lw = cstate[0]
                 self.rw = cstate[1]
             elif control_type == "bicycle":
@@ -50,7 +50,7 @@ class ControlState:
     def __str__(self):
         if self.control_type == "basic":
             return "[Command] v={}, w={}".format(self.v, self.w)
-        elif self.control_type == "ddv": # Differential Drive Vehicle
+        elif self.control_type == "diff_drive": # Differential Drive Vehicle
             return "[Command] lw={}, rw={}".format(self.lw, self.rw)
         elif self.control_type == "bicycle":
             return "[Command] a={}, delta={}".format(self.a, self.delta)

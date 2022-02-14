@@ -36,7 +36,7 @@ def run_basic():
         cv2.imshow("Motion Model", img)
         
 # Diferential-Drive Kinematic Model
-def run_dd():
+def run_diff_drive():
     from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
     print("Control Hint:")
     print("[A] Decrease angular velocity of left wheel.")
@@ -104,14 +104,14 @@ def run_bicycle():
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/diff_drive/bicycle")
     args = parser.parse_args()
     try:
         if args.simulator == "basic":
             run_basic()
-        elif args.simulator == "dd":
-            run_dd()
-        elif args.simulator == "bicycle":    
+        elif args.simulator == "diff_drive":
+            run_diff_drive()
+        elif args.simulator == "bicycle":
             run_bicycle()
         else:
             raise NameError("Unknown simulator!!")

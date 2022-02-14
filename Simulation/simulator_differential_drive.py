@@ -69,7 +69,7 @@ class SimulatorDifferentialDrive(Simulator):
             self.rw = -self.rw_range
 
         # Motion
-        cstate = ControlState("dd", self.lw, self.rw)
+        cstate = ControlState("diff_drive", self.lw, self.rw)
         state_next = self.model.step(self.state, cstate)
         if update_state:
             self.state = state_next

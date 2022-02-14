@@ -64,7 +64,7 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
 
         if path is not None and collision_count == 0:
             end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
-            if args.simulator == "basic" or args.simulator == "dd":
+            if args.simulator == "basic" or args.simulator == "diff_drive":
                 # Longitude
                 if end_dist > 5:
                     next_v = 20
@@ -77,16 +77,13 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
                 # Lateral
                 info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "v":simulator.state.v, "dt":simulator.dt}
                 next_w, target = controller.feedback(info)
-                if args.simulator == "basic":
-                    command = ControlState("basic", next_v, next_w)
-                else:
-                    r = simulator.wu/2
-                    next_lw = next_v / r - np.deg2rad(next_w)*simulator.l/r
-                    next_lw = np.rad2deg(next_lw)
-                    next_rw = next_v / r + np.deg2rad(next_w)*simulator.l/r
-                    next_rw = np.rad2deg(next_rw)
-                    command = ControlState("dd", next_lw, next_rw)
-                
+                # v,w to motor control
+                r = simulator.wu/2
+                next_lw = next_v / r - np.deg2rad(next_w)*simulator.l/r
+                next_lw = np.rad2deg(next_lw)
+                next_rw = next_v / r + np.deg2rad(next_w)*simulator.l/r
+                next_rw = np.rad2deg(next_rw)
+                command = ControlState("diff_drive", next_lw, next_rw)
             elif args.simulator == "bicycle":
                 # Longitude P-Control
                 target_v = 20 if end_dist > 25 else 0
@@ -139,7 +136,7 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="basic", help="diff_drive/bicycle")
     parser.add_argument("-c", "--controller", type=str, default="pure_pursuit", help="pid/pure_pursuit/stanley/lqr")
     parser.add_argument("-p", "--planner", type=str, default="a_star", help="a_star/rrt/rrt_star")
     parser.add_argument("-m", "--map", type=str, default="Maps/map1.png", help="image file name")
@@ -157,18 +154,11 @@ if __name__ == "__main__":
     # Select Simulator, Controller, and Planner
     try:
         # Simulator / Controller
-        if args.simulator == "basic" or args.simulator == "dd":
-            if args.simulator == "basic":
-                from Simulation.simulator_basic import SimulatorBasic
-                #Simulator = SimulatorMap(SimulatorBasic)
-                #simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
-                simulator = SimulatorMap(SimulatorBasic, m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
-            else:
-                from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
-                #Simulator = SimulatorMap(SimulatorDifferentialDrive)
-                #simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
-                simulator = SimulatorMap(SimulatorDifferentialDrive, m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
-            
+        if args.simulator == "diff_drive":
+            from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
+            #Simulator = SimulatorMap(SimulatorDifferentialDrive)
+            #simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
+            simulator = SimulatorMap(SimulatorDifferentialDrive, m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
             if args.controller == "pid":
                 from PathTracking.pid_basic import ControllerPIDBasic as Controller
                 controller = Controller()

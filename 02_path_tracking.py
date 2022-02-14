@@ -7,7 +7,7 @@ import PathTracking.utils
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="basic", help="basic/dd/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="basic", help="diff_drive/bicycle")
     parser.add_argument("-c", "--controller", type=str, default="pure_pursuit", help="pid/pure_pursuit/stanley/lqr")
     parser.add_argument("-t", "--path_type", type=int, default=2, help="1/2")
     args = parser.parse_args()
@@ -15,11 +15,8 @@ if __name__ == "__main__":
     # Select Simulator and Controller
     try:
         # Basic Kinematic Model & Differential Drive Kinematic Model
-        if args.simulator == "basic" or args.simulator == "dd":
-            if args.simulator == "basic":
-                from Simulation.simulator_basic import SimulatorBasic as Simulator
-            else:
-                from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
+        if args.simulator == "diff_drive":
+            from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
             if args.controller == "pid":
                 from PathTracking.pid_basic import ControllerPIDBasic as Controller
             elif args.controller == "pure_pursuit":
@@ -76,7 +73,7 @@ if __name__ == "__main__":
         print("\r", simulator, end="\t")
         # Control
         end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
-        if args.simulator == "basic" or args.simulator == "dd":
+        if args.simulator == "diff_drive":
             # Longitude
             if end_dist > 10:
                 next_v = 20
@@ -91,15 +88,13 @@ if __name__ == "__main__":
                 "dt":simulator.dt
             }
             next_w, target = controller.feedback(info)
-            if args.simulator == "basic":
-                command = ControlState("basic", next_v, next_w)
-            else:
-                r = simulator.wu/2
-                next_lw = next_v / r - np.deg2rad(next_w)*simulator.l/r
-                next_lw = np.rad2deg(next_lw)
-                next_rw = next_v / r + np.deg2rad(next_w)*simulator.l/r
-                next_rw = np.rad2deg(next_rw)
-                command = ControlState("dd", next_lw, next_rw)
+            # v,w to motor control
+            r = simulator.wu/2
+            next_lw = next_v / r - np.deg2rad(next_w)*simulator.l/r
+            next_lw = np.rad2deg(next_lw)
+            next_rw = next_v / r + np.deg2rad(next_w)*simulator.l/r
+            next_rw = np.rad2deg(next_rw)
+            command = ControlState("diff_drive", next_lw, next_rw)
         elif args.simulator == "bicycle":
             # Longitude (P Control)
             if end_dist > 40:
