@@ -12,6 +12,11 @@ def Transform(X, R, T):
         Xt[i] += T
     return Xt
 
+def TransformRT(R, T, R_acc, T_acc):
+    R_new = np.matmul(R, R_acc)
+    T_new = np.transpose(np.matmul(R_new, T)) + T_acc
+    return R_new, T_new
+
 def Align(Xc, Pc):
     # Xc = R * Pc + T
     Pave = np.mean(Pc,0)

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     
     # Initialize Simulator
     start_pose = (100,200,0)
-    lidar_params = [121,-120.0,120.0,250.0]
+    lidar_params = [121,-120.0,120.0,400.0]
     simulator = SimulatorMapLidar(SimulatorBasic, m, lidar_params, v_range=50)
     simulator.init_pose(start_pose)
     
@@ -38,8 +38,8 @@ if __name__ == "__main__":
     plt.plot(pts_list1[:,0], pts_list1[:,1], "bo")
     
     # Step 2
-    for i in range(5):
-        state_next, info = simulator.step(ControlState("basic", 20, 45))
+    for i in range(10):
+        state_next, info = simulator.step(ControlState("basic", 20, 20))
         print(simulator.state)
     sdata2 = info["lidar"].copy()
     img2 = cv2.flip(simulator.render(), 0)
@@ -61,8 +61,9 @@ if __name__ == "__main__":
     start = time.time()
     R, T = Icp(30, pts_origin, pts_align)
     end = time.time()
-    print(R,T)
     print(end-start)
+    print(R,T)
+    print(simulator.state)
     
     pts_align_trans = Transform(pts_align, R, T)
     plt.figure()

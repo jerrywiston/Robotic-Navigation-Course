@@ -81,12 +81,16 @@ class SimulatorMapLidar(SimulatorMap):
         # Draw rays
         pose = self.state.pose()
         plist = EndPoint(pose, self.lidar_param, self.sense_data)
-        for pts in plist:
+        for i, pts in enumerate(plist):
+            if self.sense_data[i] < self.lidar_param[3]:
+                color = (0.0,0.9,0.0)
+            else:
+                color = (0.7,1.0,0.7)
             cv2.line(
             img, 
             (int(1*pose[0]), int(1*pose[1])), 
             (int(1*pts[0]), int(1*pts[1])),
-            (0.0,1.0,0.0), 1)
+            color, 1)
         img = self.simulator_class.render(self, img)
         return img
         

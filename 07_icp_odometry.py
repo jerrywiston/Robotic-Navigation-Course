@@ -6,11 +6,8 @@ from Simulation.simulator_map import SimulatorMapLidar
 from Slam.utils import *
 from Slam.icp_2d import *
 
-def odometry(pts1, pts2):
-    pass
-
 # Basic Kinematic Model
-def run_basic(m, use_lidar):
+def run_basic(m):
     from Simulation.simulator_basic import SimulatorBasic
     print("Control Hint:")
     print("[W] Increase velocity.")
@@ -18,11 +15,15 @@ def run_basic(m, use_lidar):
     print("[A] Increase angular velocity. (Anti-Clockwise)")
     print("[D] Decrease angular velocity. (Clockwise)")
     print("====================")
-    lidar_params = [121,-120.0,120.0,250.0]
+    lidar_params = [121,-120.0,120.0,300.0]
     simulator = SimulatorMapLidar(SimulatorBasic, m, lidar_params)
-    _, info = simulator.init_pose((100,200,0))
-    pose_rec = [simulator.state.pose()]
-    lidar_rec = [np.array(EndPoint((0,0,0), lidar_params, info["lidar"]))]
+    start_pose = (100,200,0)
+    _, info = simulator.init_pose(start_pose)
+    # Init Rot, Trans
+    R_acc = np.eye(2)
+    T_acc = np.zeros(2)
+    pose_hist = [simulator.state.pose()]
+    lidar_hist = [np.array(EndPoint((0,0,0), lidar_params, info["lidar"], True))]
     count = 0
     while(True):
         count += 1
@@ -40,17 +41,24 @@ def run_basic(m, use_lidar):
             break
         else:
             command = ControlState(args.simulator, None, None)
-        simulator.step(command)
+        _, info = simulator.step(command)
         print("\r", simulator, end="\t")
         img = simulator.render()
-        img = cv2.flip(img, 0)
-        cv2.imshow("Motion Model", img)
-
+        
         if count % 10 == 0:
             count = 0
-            pose = simulator.state.pose()
-            pts = np.array(EndPoint((0,0,0), lidar_params, info["lidar"]))
-            odometry(lidar_rec[-1], pts)
+            #pose = simulator.state.pose()
+            pts = np.array(EndPoint((0,0,0), lidar_params, info["lidar"], True))
+            R,T = Icp(30, lidar_hist[-1], pts)
+            R_acc, T_acc = TransformRT(R, T, R_acc, T_acc)
+            print(T_acc, T)
+            lidar_hist.append(pts)
+            pose_hist.append((start_pose[0]+T_acc[0], start_pose[1]+T_acc[1]))
+        
+        for p in pose_hist:
+            cv2.circle(img, (int(p[0]), int(p[1])), 2, (1,0,0))
+        img = cv2.flip(img, 0)
+        cv2.imshow("Motion Model", img)
         
 # Diferential-Drive Kinematic Model
 def run_ddv(m, use_lidar):
@@ -135,7 +143,7 @@ if __name__ == "__main__":
     m = m.astype(float) / 255.
     try:
         if args.simulator == "basic":
-            run_basic(m, use_lidar=args.lidar)
+            run_basic(m)
         elif args.simulator == "dd":
             run_ddv(m, use_lidar=args.lidar)
         elif args.simulator == "bicycle":
