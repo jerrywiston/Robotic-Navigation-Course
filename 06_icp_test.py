@@ -39,7 +39,7 @@ if __name__ == "__main__":
     
     # Step 2
     for i in range(10):
-        state_next, info = simulator.step(ControlState("basic", 20, 20))
+        state_next, info = simulator.step(ControlState("basic", 20, 0))
         print(simulator.state)
     sdata2 = info["lidar"].copy()
     img2 = cv2.flip(simulator.render(), 0)

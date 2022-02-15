@@ -15,7 +15,7 @@ def run_basic(m):
     print("[A] Increase angular velocity. (Anti-Clockwise)")
     print("[D] Decrease angular velocity. (Clockwise)")
     print("====================")
-    lidar_params = [121,-120.0,120.0,300.0]
+    lidar_params = [121,-120.0,120.0,400.0]
     simulator = SimulatorMapLidar(SimulatorBasic, m, lidar_params)
     start_pose = (100,200,0)
     _, info = simulator.init_pose(start_pose)
