@@ -1,10 +1,10 @@
 import sys
 import numpy as np
-from sklearn.neighbors import KDTree
 import matplotlib.pyplot as plt
 sys.path.append("..")
 import Slam.utils as utils
 import math
+import cv2
 
 def Transform(X, R, T):
     Xt = np.transpose(np.matmul(R, np.transpose(X)))
@@ -14,7 +14,7 @@ def Transform(X, R, T):
 
 def TransformRT(R, T, R_acc, T_acc):
     R_new = np.matmul(R, R_acc)
-    T_new = np.transpose(np.matmul(R_acc, T)) + T_acc
+    T_new = np.transpose(np.matmul(R_new, T)) + T_acc
     return R_new, T_new
 
 def Align(Xc, Pc):
@@ -42,18 +42,45 @@ def Rejection(Xc,Pc, R, T):
 
     return Xc, Pc
 
-def Icp(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
+def Icp_scipy(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
+    from sklearn.neighbors import KDTree
     # X = R * P + T
-    #if X.shape[0] < 20 or P.shape[0] < 20:
-    #    return np.eye(2), np.zeros((2), dtype=float)
-    
+    if X.shape[0] < 2 or P.shape[0] < 2:
+        return np.eye(2), np.zeros((2), dtype=float)
+
     pc_match = P.copy()
     tree = KDTree(X, leaf_size=2)
-
     for i in range(iter):
         Pc = Transform(pc_match, Rtot, Ttot)
         Xc = X[tree.query(Pc, k=1)[1]].reshape(Pc.shape)
-        Xc, Pc = Rejection(Xc,Pc, Rtot, Ttot)
+        Xc, Pc = Rejection(Xc, Pc, Rtot, Ttot)
+        R, T = Align(Xc, Pc)
+
+        Rtot = np.matmul(R,Rtot)
+        Ttot = T + np.matmul(R,Ttot)
+
+    return Rtot, Ttot
+
+def Icp(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
+    # X = R * P + T
+    if X.shape[0] < 2 or P.shape[0] < 2:
+        return np.eye(2), np.zeros((2), dtype=float)
+
+    X = X.astype(np.float32)
+    pc_match = P.copy().astype(np.float32)
+    knn = cv2.ml.KNearest_create()
+    response = np.array(range(X.shape[0])).astype(np.float32).reshape(-1,1)
+    knn.train(X, cv2.ml.ROW_SAMPLE, response)
+
+    for i in range(iter):
+        Pc = Transform(pc_match.astype(np.float32), Rtot, Ttot).astype(np.float32)
+        ####
+        ret, results, neighbours, dist = knn.findNearest(Pc, 1)
+        Xc = X[results[:,0].astype(np.int)].squeeze()
+        #print(Xc.shape)
+        ####
+        #Xc = X[tree.query(Pc, k=1)[1]].reshape(Pc.shape)
+        Xc, Pc = Rejection(Xc, Pc, Rtot, Ttot)
         R, T = Align(Xc, Pc)
 
         Rtot = np.matmul(R,Rtot)
