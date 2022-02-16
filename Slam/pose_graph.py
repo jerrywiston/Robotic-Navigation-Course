@@ -32,13 +32,13 @@ class PoseGraph:
         self.nodes[id2].in_edges.append(edge_id)
         return edge_id
 
-    def compute_A(self, i, j):
+    def get_A(self, i, j):
         return np.zeros((3,3), dtype=np.float32)
 
-    def compute_B(self, i, j):
+    def get_B(self, i, j):
         return np.zeros((3,3), dtype=np.float32)
 
-    def compute_e(self, i, j):
+    def get_e(self, i, j):
         pass
 
     def compute_jacobian(self):
@@ -48,15 +48,28 @@ class PoseGraph:
         count = 0
         for i in range(n_nodes):
             for j in range(n_nodes):
-                jaco[:, 3*count:3*(count+1)] = self.compute_A(i,j)
-                jaco[:, A_len+3*count:A_len+3*(count+1)] = self.compute_B(i,j)
+                jaco[:, 3*count:3*(count+1)] = self.get_A(i,j)
+                jaco[:, A_len+3*count:A_len+3*(count+1)] = self.get_B(i,j)
                 count += 1
         return jaco
 
-    def compute_hassian(self):
-        jaco = self.compute_jacobian()
-        hass = np.matmul(jaco, np.transpose(jaco))
-        return hass
-    
+    def compute_err(self):
+        n_nodes = len(self.nodes)
+        err = np.zeros((3,3*n_nodes*n_nodes), dtype=np.float32)
+        count = 0
+        for i in range(n_nodes):
+            for j in range(n_nodes):
+                err[:, 3*count:3*(count+1)] = self.get_e(i,j)
+                count += 1
+
     def solve(self):
-        pass
+        jaco = self.compute_jaco()
+        H = np.matmul(np.transpose(jaco), jaco)
+        H[:3,:3] = np.eye(3,dtype=np.float32)
+        err = self.compute_err()
+        b = np.matmul(np.transpose(jaco), err)
+        # H delta = -b
+        # psudo inverse: Ax=b -> x = (A^T A)^(-1) A^T b
+        temp = np.linalg.inv(np.matmul(np.transpose(H), H))
+        delta = np.matmul(np.matmul(temp, np.transpose(H)), -b)
+        return delta
