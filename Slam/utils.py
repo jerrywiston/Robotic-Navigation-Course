@@ -43,3 +43,14 @@ def EndPoint(pose, lidar_params, sensor_data, skip_max=False):
 
 def gaussian(x, mu, sig):
     return 1./(np.sqrt(2.*np.pi)*sig)*np.exp(-np.power((x - mu)/sig, 2.)/2)
+
+def Transform(X, R, T):
+    Xt = np.transpose(np.matmul(R, np.transpose(X)))
+    for i in range(Xt.shape[0]):
+        Xt[i] += T
+    return Xt
+
+def TransformRT(R, T, R_acc, T_acc):
+    R_new = np.matmul(R, R_acc)
+    T_new = np.transpose(np.matmul(R_new, T)) + T_acc
+    return R_new, T_new

@@ -1,21 +1,8 @@
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
+import cv2
 sys.path.append("..")
 import Slam.utils as utils
-import math
-import cv2
-
-def Transform(X, R, T):
-    Xt = np.transpose(np.matmul(R, np.transpose(X)))
-    for i in range(Xt.shape[0]):
-        Xt[i] += T
-    return Xt
-
-def TransformRT(R, T, R_acc, T_acc):
-    R_new = np.matmul(R, R_acc)
-    T_new = np.transpose(np.matmul(R_new, T)) + T_acc
-    return R_new, T_new
 
 def Align(Xc, Pc):
     # Xc = R * Pc + T
@@ -30,7 +17,7 @@ def Align(Xc, Pc):
     T = Xave - np.transpose(np.matmul(R, np.transpose(Pave)))
     return R, T
 
-def Rejection(Xc,Pc, R, T):
+def Rejection(Xc, Pc):
     error = Xc - Pc
     error = np.sum((error * error),1)
     id_sort = np.argsort(error)
@@ -42,7 +29,7 @@ def Rejection(Xc,Pc, R, T):
 
     return Xc, Pc
 
-def Icp_scipy(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
+def IcpSolve_scipy(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
     from sklearn.neighbors import KDTree
     # X = R * P + T
     if X.shape[0] < 2 or P.shape[0] < 2:
@@ -51,9 +38,9 @@ def Icp_scipy(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
     pc_match = P.copy()
     tree = KDTree(X, leaf_size=2)
     for i in range(iter):
-        Pc = Transform(pc_match, Rtot, Ttot)
+        Pc = utils.Transform(pc_match, Rtot, Ttot)
         Xc = X[tree.query(Pc, k=1)[1]].reshape(Pc.shape)
-        Xc, Pc = Rejection(Xc, Pc, Rtot, Ttot)
+        Xc, Pc = Rejection(Xc, Pc)
         R, T = Align(Xc, Pc)
 
         Rtot = np.matmul(R,Rtot)
@@ -61,7 +48,7 @@ def Icp_scipy(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
 
     return Rtot, Ttot
 
-def Icp(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
+def IcpSolve(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
     # X = R * P + T
     if X.shape[0] < 2 or P.shape[0] < 2:
         return np.eye(2), np.zeros((2), dtype=float)
@@ -73,14 +60,10 @@ def Icp(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
     knn.train(X, cv2.ml.ROW_SAMPLE, response)
 
     for i in range(iter):
-        Pc = Transform(pc_match.astype(np.float32), Rtot, Ttot).astype(np.float32)
-        ####
+        Pc = utils.Transform(pc_match.astype(np.float32), Rtot, Ttot).astype(np.float32)
         ret, results, neighbours, dist = knn.findNearest(Pc, 1)
         Xc = X[results[:,0].astype(np.int)].squeeze()
-        #print(Xc.shape)
-        ####
-        #Xc = X[tree.query(Pc, k=1)[1]].reshape(Pc.shape)
-        Xc, Pc = Rejection(Xc, Pc, Rtot, Ttot)
+        Xc, Pc = Rejection(Xc, Pc)
         R, T = Align(Xc, Pc)
 
         Rtot = np.matmul(R,Rtot)
@@ -88,62 +71,31 @@ def Icp(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
 
     return Rtot, Ttot
 
-def RayCastMap(pos, bot_param, gmap):
-    sense_data = []
-    inter = (bot_param[2] - bot_param[1]) / (bot_param[0]-1)
-    for i in range(bot_param[0]):
-        theta = pos[2] + bot_param[1] + i*inter
-        dist, xy = RayCast(np.array((pos[0], pos[1])), theta, gmap, bot_param)
-        if dist > 0:
-            sense_data.append(xy)
-    return sense_data
+class Icp2dTracking:
+    def __init__(self, iteration=30):
+        self.iteration = iteration
 
-def RayCast(pos, theta, gmap, bot_param):
-    end = np.array((pos[0] + bot_param[3]*np.cos(np.deg2rad(theta)), pos[1] + bot_param[3]*np.sin(np.deg2rad(theta))))
-    x0, y0 = int(pos[0]), int(pos[1])
-    x1, y1 = int(end[0]), int(end[1])
-    plist = utils.Bresenham(x0, x1, y0, y1)
-    i = 0
-    dist = bot_param[3]
-    xy = [0,0]
-    for p in plist:
-        if gmap.GetCoordProb((p[1], p[0])) < 0.3:
-            tmp = math.pow(float(p[0]) - pos[0], 2) + math.pow(float(p[1]) - pos[1], 2)
-            tmp = math.sqrt(tmp)
-            if tmp < dist:
-                dist = tmp
-                xy = [p[0], p[1]]
-    return dist, xy
-
-if __name__ == '__main__':
-    np.random.seed(0)
-    #X = np.random.random((10, 2))
-    X = np.array(
-        [ [0,0],[0,1],[0,2],[0,3],[0,4],
-        [1,0],[2,0],[3,0],[4,0],[5,0],
-        #[0,5],[1,5],[2,5],[3,5],[4,5],
-        #[5,1],[5,2],[5,3],[5,4],[5,5],
-        ]
-    )
-    plt.plot(X[:,0], X[:,1], "o")
-    #tree = KDTree(X, leaf_size=2)
-    #out = tree.query(np.array([[0.0,0.0]]), k=2)
-    #plt.plot(X[out[1][0],0], X[out[1][0],1], "r.")
-
-    theta = np.deg2rad(30)
-    R = np.array([[np.cos(theta), -np.sin(theta)],[np.sin(theta), np.cos(theta)]])
-    T = np.array([0.3,0.7])
-
-    P = Transform(X, R, T)
-    plt.plot(P[:,0], P[:,1], "ro")
-
-    #RR, TT = Align(P, X)
-    RR, TT = Icp(1000, P, X)
-    PP = Transform(X, RR, TT)
-    plt.plot(PP[:,0], PP[:,1], "go")
-
-    print(R,T)
-    print(RR,TT)
-
-    plt.axis('equal')
-    plt.show()
+    def init_tracking(self, observation, start_pose=(0,0,0)):
+        self.step_count = 0
+        self.timestamp_history = [0.0]
+        self.odometry_history = [start_pose]
+        self.observation_history = [observation]
+        self.rotation = np.eye(2)
+        self.translation = np.zeros(2)
+    
+    def add_observation(self, observation, timestamp=None):
+        self.observation_history.append(observation)
+        R_pc, T_pc = IcpSolve(self.iteration, observation, self.observation_history[self.step_count])
+        R, T = np.transpose(R_pc), -T_pc
+        self.rotation, self.translation = utils.TransformRT(R, T, self.rotation, self.translation)
+        pose_est = (
+            self.odometry_history[0][0] + self.translation[0],
+            self.odometry_history[0][1] + self.translation[1],
+            self.odometry_history[0][2] + np.rad2deg(np.arctan2(self.rotation[1,0], self.rotation[0,0]))
+        )
+        self.odometry_history.append(pose_est)
+        if timestamp is None:
+            self.timestamp_history.append(self.timestamp_history[self.step_count]+1.0)
+        else:
+            self.timestamp_history.append(timestamp)
+        self.step_count += 1

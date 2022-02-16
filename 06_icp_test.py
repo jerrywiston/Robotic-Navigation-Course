@@ -1,14 +1,13 @@
-from re import L
-import numpy as np
-import cv2
-import matplotlib.pyplot as plt
 import time
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
 
-from Slam.utils import EndPoint
 from Simulation.utils import State, ControlState
 from Simulation.simulator_basic import SimulatorBasic
 from Simulation.simulator_map import SimulatorMapLidar
-from Slam.icp_2d import *
+import Slam.utils as utils
+import Slam.icp_2d as icp
 
 if __name__ == "__main__":
     # Read Map
@@ -31,7 +30,7 @@ if __name__ == "__main__":
     sdata1 = info["lidar"].copy()
     img1 = cv2.flip(simulator.render(), 0)
     cv2.imshow("render1", img1)
-    pts_list1 = EndPoint((0,0,0), lidar_params, sdata1, True)
+    pts_list1 = utils.EndPoint((0,0,0), lidar_params, sdata1, True)
     pts_list1 = np.array(pts_list1)
     plt.figure()
     plt.axis("equal")
@@ -45,27 +44,24 @@ if __name__ == "__main__":
     img2 = cv2.flip(simulator.render(), 0)
     cv2.imshow("render2", img2)
 
-    #pts_list2 = EndPoint(simulator.state.pose(), lidar_params, sdata2, True)
-    pts_list2 = EndPoint((0,0,0), lidar_params, sdata2, True)
+    pts_list2 = utils.EndPoint((0,0,0), lidar_params, sdata2, True)
     pts_list2 = np.array(pts_list2)
-    #plt.figure()
     plt.axis("equal")
     plt.plot(pts_list2[:,0], pts_list2[:,1], "go")
 
     # Iterative Closest Points
-    pts_origin = EndPoint((0,0,0), lidar_params, sdata1, True)
+    pts_origin = utils.EndPoint((0,0,0), lidar_params, sdata1, True)
     pts_origin = np.array(pts_origin)
-    pts_align = EndPoint((0,0,0), lidar_params, sdata2, True)
+    pts_align = utils.EndPoint((0,0,0), lidar_params, sdata2, True)
     pts_align = np.array(pts_align)
-    #print(pts_origin, pts_align)
     start = time.time()
-    R, T = Icp(30, pts_origin, pts_align)
+    R, T = icp.IcpSolve(30, pts_origin, pts_align)
     end = time.time()
     print(end-start)
     print(R,T)
     print(simulator.state)
     
-    pts_align_trans = Transform(pts_align, R, T)
+    pts_align_trans = utils.Transform(pts_align, R, T)
     plt.figure()
     plt.axis("equal")
     plt.plot(pts_origin[:,0], pts_origin[:,1], "bo")
