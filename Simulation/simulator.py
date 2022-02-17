@@ -1,12 +1,11 @@
 import sys
 import abc
-
 sys.path.append("..")
 from Simulation.utils import ControlState
 
 class Simulator:
     @abc.abstractmethod
-    def init_state(self, pos):
+    def init_state(self, pose):
         return NotImplementedError
 
     @abc.abstractmethod

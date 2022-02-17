@@ -18,26 +18,26 @@ if __name__ == "__main__":
         if args.simulator == "diff_drive":
             from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
             if args.controller == "pid":
-                from PathTracking.pid_basic import ControllerPIDBasic as Controller
+                from PathTracking.controller_pid_basic import ControllerPIDBasic as Controller
             elif args.controller == "pure_pursuit":
-                from PathTracking.pure_pursuit_basic import ControllerPurePursuitBasic as Controller
+                from PathTracking.controller_pure_pursuit_basic import ControllerPurePursuitBasic as Controller
             elif args.controller == "stanley":
-                from PathTracking.stanley_basic import ControllerStanleyBasic as Controller
+                from PathTracking.controller_stanley_basic import ControllerStanleyBasic as Controller
             elif args.controller == "lqr":
-                from PathTracking.lqr_basic import ControllerLQRBasic as Controller
+                from PathTracking.controller_lqr_basic import ControllerLQRBasic as Controller
             else:
                 raise NameError("Unknown controller!!")
         # Bicycle Model
         elif args.simulator == "bicycle":
             from Simulation.simulator_bicycle import SimulatorBicycle as Simulator
             if args.controller == "pid":
-                from PathTracking.pid_bicycle import ControllerPIDBicycle as Controller
+                from PathTracking.controller_pid_bicycle import ControllerPIDBicycle as Controller
             elif args.controller == "pure_pursuit":
-                from PathTracking.pure_pursuit_bicycle import ControllerPurePursuitBicycle as Controller
+                from PathTracking.controller_pure_pursuit_bicycle import ControllerPurePursuitBicycle as Controller
             elif args.controller == "stanley":
-                from PathTracking.stanley_bicycle import ControllerStanleyBicycle as Controller
+                from PathTracking.controller_stanley_bicycle import ControllerStanleyBicycle as Controller
             elif args.controller == "lqr":
-                from PathTracking.lqr_bicycle import ControllerLQRBicycle as Controller
+                from PathTracking.controller_lqr_bicycle import ControllerLQRBicycle as Controller
             else:
                 raise NameError("Unknown controller!!")
         else:

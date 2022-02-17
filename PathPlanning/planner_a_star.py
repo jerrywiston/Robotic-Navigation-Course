@@ -1,9 +1,12 @@
 import cv2
-import numpy as np
+import sys
+sys.path.append("..")
+import PathPlanning.utils as utils
+from PathPlanning.planner import Planner
 
-class PlannerAStar():
+class PlannerAStar(Planner):
     def __init__(self, m, inter=10):
-        self.map = m
+        super().__init__(m)
         self.inter = inter
         self.initialize()
 
@@ -13,11 +16,6 @@ class PlannerAStar():
         self.h = {} # Distance from start to node
         self.g = {} # Distance from node to goal
         self.goal_node = None
-
-    def _distance(self, a, b):
-        # Diagonal distance
-        d = np.max([np.abs(a[0]-b[0]), np.abs(a[1]-b[1])])
-        return d
 
     def planning(self, start=(100,200), goal=(375,520), inter=None, img=None):
         if inter is None:
@@ -29,7 +27,7 @@ class PlannerAStar():
         self.queue.append(start)
         self.parent[start] = None
         self.g[start] = 0
-        self.h[start] = self._distance(start, goal)
+        self.h[start] = utils.distance(start, goal)
         while(1):
             min_dist = 99999
             min_id = -1
@@ -43,7 +41,7 @@ class PlannerAStar():
             p = self.queue.pop(min_id)
             if self.map[p[1],p[0]]<0.5:
                 continue
-            if self._distance(p,goal) < inter:
+            if utils.distance(p,goal) < inter:
                 self.goal_node = p
                 break
             
@@ -55,7 +53,7 @@ class PlannerAStar():
                     self.queue.append(pn)
                     self.parent[pn] = p
                     self.g[pn] = self.g[p] + inter
-                    self.h[pn] = self._distance(pn,goal)
+                    self.h[pn] = utils.distance(pn,goal)
                 elif self.g[pn]>self.g[p] + inter:
                     self.parent[pn] = p
                     self.g[pn] = self.g[p] + inter

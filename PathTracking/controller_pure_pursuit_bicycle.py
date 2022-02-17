@@ -1,23 +1,14 @@
+import sys
 import numpy as np 
+sys.path.append("..")
+import PathTracking.utils as utils
+from PathTracking.controller import Controller
 
-class ControllerPurePursuitBicycle:
+class ControllerPurePursuitBicycle(Controller):
     def __init__(self, kp=1, Lfc=25):
         self.path = None
         self.kp = kp
         self.Lfc = Lfc
-
-    def set_path(self, path):
-        self.path = path.copy()
-
-    def _search_nearest(self, pos):
-        min_dist = 99999999
-        min_id = -1
-        for i in range(self.path.shape[0]):
-            dist = (pos[0] - self.path[i,0])**2 + (pos[1] - self.path[i,1])**2
-            if dist < min_dist:
-                min_dist = dist
-                min_id = i
-        return min_id, min_dist
 
     # State: [x, y, yaw, v, l]
     def feedback(self, info):
@@ -30,7 +21,7 @@ class ControllerPurePursuitBicycle:
         x, y, yaw, v, l = info["x"], info["y"], info["yaw"], info["v"], info["l"]
 
         # Search Front Target
-        min_idx, min_dist = self._search_nearest((x,y))
+        min_idx, min_dist = utils.search_nearest(self.path, (x,y))
         Ld = self.kp*v + self.Lfc
         target_idx = min_idx
         for i in range(min_idx,len(self.path)-1):

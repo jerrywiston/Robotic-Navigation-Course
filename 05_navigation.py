@@ -165,16 +165,16 @@ if __name__ == "__main__":
             #simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
             simulator = SimulatorMap(SimulatorDifferentialDrive, m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
             if args.controller == "pid":
-                from PathTracking.pid_basic import ControllerPIDBasic as Controller
+                from PathTracking.controller_pid_basic import ControllerPIDBasic as Controller
                 controller = Controller()
             elif args.controller == "pure_pursuit":
-                from PathTracking.pure_pursuit_basic import ControllerPurePursuitBasic as Controller
+                from PathTracking.controller_pure_pursuit_basic import ControllerPurePursuitBasic as Controller
                 controller = Controller(Lfc=1)
             elif args.controller == "stanley":
-                from PathTracking.stanley_basic import ControllerStanleyBasic as Controller
+                from PathTracking.controller_stanley_basic import ControllerStanleyBasic as Controller
                 controller = Controller()
             elif args.controller == "lqr":
-                from PathTracking.lqr_basic import ControllerLQRBasic as Controller
+                from PathTracking.controller_lqr_basic import ControllerLQRBasic as Controller
                 controller = Controller()
             else:
                 raise NameError("Unknown controller!!")
@@ -184,16 +184,16 @@ if __name__ == "__main__":
             #simulator = Simulator(m=m, l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
             simulator = SimulatorMap(SimulatorBicycle, m=m, l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
             if args.controller == "pid":
-                from PathTracking.pid_bicycle import ControllerPIDBicycle as Controller
+                from PathTracking.controller_pid_bicycle import ControllerPIDBicycle as Controller
                 controller = Controller()
             elif args.controller == "pure_pursuit":
-                from PathTracking.pure_pursuit_bicycle import ControllerPurePursuitBicycle as Controller
+                from PathTracking.controller_pure_pursuit_bicycle import ControllerPurePursuitBicycle as Controller
                 controller = Controller(Lfc=1)
             elif args.controller == "stanley":
-                from PathTracking.stanley_bicycle import ControllerStanleyBicycle as Controller
+                from PathTracking.controller_stanley_bicycle import ControllerStanleyBicycle as Controller
                 controller = Controller()
             elif args.controller == "lqr":
-                from PathTracking.lqr_bicycle import ControllerLQRBicycle as Controller
+                from PathTracking.controller_lqr_bicycle import ControllerLQRBicycle as Controller
                 controller = Controller()
             else:
                 raise NameError("Unknown controller!!")
@@ -201,11 +201,11 @@ if __name__ == "__main__":
             raise NameError("Unknown simulator!!")
         # Planner
         if args.planner == "a_star":
-            from PathPlanning.a_star import PlannerAStar as Planner
+            from PathPlanning.planner_a_star import PlannerAStar as Planner
         elif args.planner == "rrt":
-            from PathPlanning.rrt import PlannerRRT as Planner
+            from PathPlanning.planner_rrt import PlannerRRT as Planner
         elif args.planner == "rrt_star":
-            from PathPlanning.rrt_star import PlannerRRTStar as Planner
+            from PathPlanning.planner_rrt_star import PlannerRRTStar as Planner
         else:
             print("Unknown planner !!")
             exit(0)

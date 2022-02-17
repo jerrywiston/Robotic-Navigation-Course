@@ -1,22 +1,13 @@
+import sys
 import numpy as np 
+sys.path.append("..")
+import PathTracking.utils as utils
+from PathTracking.controller import Controller
 
-class ControllerStanleyBicycle:
+class ControllerStanleyBicycle(Controller):
     def __init__(self, kp=0.5):
         self.path = None
         self.kp = kp
-
-    def set_path(self, path):
-        self.path = path.copy()
-    
-    def _search_nearest(self, pos):
-        min_dist = 99999999
-        min_id = -1
-        for i in range(self.path.shape[0]):
-            dist = (pos[0] - self.path[i,0])**2 + (pos[1] - self.path[i,1])**2
-            if dist < min_dist:
-                min_dist = dist
-                min_id = i
-        return min_id, min_dist
 
     # State: [x, y, yaw, delta, v, l]
     def feedback(self, info):
@@ -32,7 +23,7 @@ class ControllerStanleyBicycle:
         front_x = x + l*np.cos(np.deg2rad(yaw))
         front_y = y + l*np.sin(np.deg2rad(yaw))
         vf = v / np.cos(np.deg2rad(delta))
-        min_idx, min_dist = self._search_nearest((front_x,front_y))
+        min_idx, min_dist = utils.search_nearest(self.path, (front_x,front_y))
         target = self.path[min_idx]
 
         theta_e = (target[2] - yaw) % 360

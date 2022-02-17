@@ -3,15 +3,12 @@ import numpy as np
 import sys
 sys.path.append("..")
 import PathPlanning.utils as utils
+from PathPlanning.planner import Planner
 
-class PlannerRRTStar():
+class PlannerRRTStar(Planner):
     def __init__(self, m, extend_len=20):
-        self.map = m
+        super().__init__(m)
         self.extend_len = extend_len 
-
-    def _distance(self, n1, n2):
-        d = np.array(n1) - np.array(n2)
-        return np.hypot(d[0], d[1])
 
     def _random_node(self, goal, shape):
         r = np.random.choice(2,1,p=[0.5,0.5])
@@ -26,7 +23,7 @@ class PlannerRRTStar():
         min_dist = 99999
         min_node = None
         for n in self.ntree:
-            dist = self._distance(n, samp_node)
+            dist = utils.distance(n, samp_node)
             if dist < min_dist:
                 min_dist = dist
                 min_node = n
@@ -51,14 +48,14 @@ class PlannerRRTStar():
         if new_node[1]<0 or new_node[1]>=self.map.shape[0] or new_node[0]<0 or new_node[0]>=self.map.shape[1] or self._check_collision(from_node, new_node):
             return False, None
         else:        
-            return new_node, self._distance(new_node, from_node)
+            return new_node, utils.distance(new_node, from_node)
     
     def _near_node(self, node, radius):
         nlist = []
         for n in self.ntree:
             if n == node or self._check_collision(n,node):
                 continue
-            if self._distance(n, node) <= radius:
+            if utils.distance(n, node) <= radius:
                 nlist.append(n)
         return nlist
 
@@ -80,14 +77,14 @@ class PlannerRRTStar():
                 self.cost[new_node] = cost + self.cost[near_node]
             else:
                 continue
-            if self._distance(near_node, goal) < extend_len:
+            if utils.distance(near_node, goal) < extend_len:
                 goal_node = near_node
                 break
         
             # Re-Parent
             nlist = self._near_node(new_node, 100)
             for n in nlist:
-                cost = self.cost[n] + self._distance(n, new_node)
+                cost = self.cost[n] + utils.distance(n, new_node)
                 if cost < self.cost[new_node]:
                     self.ntree[new_node] = n
                     self.cost[new_node] = cost
@@ -96,7 +93,7 @@ class PlannerRRTStar():
             for n in nlist:
                 if n == self.ntree[new_node]:
                     continue
-                cost = self.cost[new_node] + self._distance(n, new_node)
+                cost = self.cost[new_node] + utils.distance(n, new_node)
                 if cost < self.cost[n]:
                     self.ntree[n] = new_node
                     self.cost[n] = cost
