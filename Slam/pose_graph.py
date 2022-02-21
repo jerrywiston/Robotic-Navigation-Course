@@ -6,11 +6,61 @@ class Node:
         self.in_edges = []
         self.out_edges = []
 
+    def transform(self):
+        R = np.eye(2, dtype=np.float32)
+        R[0,0] = np.cos(np.deg2rad(self.pose[2]))
+        R[0,1] = np.sin(np.deg2rad(self.pose[2]))
+        R[1,0] = -np.sin(np.deg2rad(self.pose[2]))
+        R[1,1] = np.cos(np.deg2rad(self.pose[2]))
+        T = np.zeros((2,1), dtype=np.float32)
+        T[0,0] = self.pose[0]
+        T[1,0] = self.pose[1]
+        return R, T
+
 class Edge:
     def __init__(self, id1, id2, pose):
         self.id1 = id1
         self.id2 = id2
         self.data = pose
+    
+    def transform(self):
+        R = np.eye(2, dtype=np.float32)
+        R[0,0] = np.cos(np.deg2rad(self.pose[2]))
+        R[0,1] = np.sin(np.deg2rad(self.pose[2]))
+        R[1,0] = -np.sin(np.deg2rad(self.pose[2]))
+        R[1,1] = np.cos(np.deg2rad(self.pose[2]))
+        T = np.zeros((2,1), dtype=np.float32)
+        T[0,0] = self.pose[0]
+        T[1,0] = self.pose[1]
+        return R, T
+
+    def get_A(self):
+        A = np.zeros((3,3), dtype=np.float32)
+        Ri, Ti = self.nodes[self.id1].transform()
+        A[:2,:2] = -np.transpose(Ri)
+        Ridtheta = np.array([[Ri[1,0],-Ri[0,0]],\
+                            [Ri[0,0],Ri[1,0]]])
+        diff_temp = np.array([[self.nodes[self.id2][0]-self.nodes[self.id1][0]],\
+                            [self.nodes[self.id2][1]-self.nodes[self.id1][1]]])
+        A[:2,2] = np.matmul(Ridtheta, diff_temp)
+        A[2,2] = -1 
+        return A
+
+    def get_B(self):
+        B = np.zeros((3,3), dtype=np.float32)
+        Ri, Ti = self.nodes[self.id1].transform()
+        B[:2,:2] = np.transpose(Ri)
+        B[2,2] = -1
+        return B
+
+    def get_e(self):
+        e = np.zeros((3,1), dtype=np.float32)
+        Ri, Ti = self.nodes[self.id1].transform()
+        diff_temp = np.array([[self.nodes[self.id2][0]-self.nodes[self.id1][0]],\
+                            [self.nodes[self.id2][1]-self.nodes[self.id1][1]]])
+        e[:2,0] = np.matmul(np.transpose(Ri), diff_temp)
+        e[2,0] = np.deg2rad((self.nodes[self.id2].pose[2] - self.nodes[self.id1].pose[2] - self.pose[2]) % 360)
+        return e
 
 class PoseGraph:
     def __init__(self):
@@ -32,35 +82,23 @@ class PoseGraph:
         self.nodes[id2].in_edges.append(edge_id)
         return edge_id
 
-    def get_A(self, i, j):
-        return np.zeros((3,3), dtype=np.float32)
-
-    def get_B(self, i, j):
-        return np.zeros((3,3), dtype=np.float32)
-
-    def get_e(self, i, j):
-        pass
-
     def compute_jacobian(self):
         n_nodes = len(self.nodes)
         A_len = 3*n_nodes*n_nodes
         jaco = np.zeros((3,A_len*2), dtype=np.float32)
-        count = 0
-        for i in range(n_nodes):
-            for j in range(n_nodes):
-                jaco[:, 3*count:3*(count+1)] = self.get_A(i,j)
-                jaco[:, A_len+3*count:A_len+3*(count+1)] = self.get_B(i,j)
-                count += 1
+        for edge in self.edges:
+            i, j = edge.id1, edge.id2
+            jaco[:,3*(i*n_nodes+j):3*(i*n_nodes+j+1)] = edge.get_A()
+            jaco[:, A_len+3*(i*n_nodes+j):A_len+3*(i*n_nodes+j+1)] = edge.get_B()
         return jaco
 
     def compute_err(self):
         n_nodes = len(self.nodes)
         err = np.zeros((3,3*n_nodes*n_nodes), dtype=np.float32)
-        count = 0
-        for i in range(n_nodes):
-            for j in range(n_nodes):
-                err[:, 3*count:3*(count+1)] = self.get_e(i,j)
-                count += 1
+        for edge in self.edges:
+            i, j = edge.id1, edge.id2
+            err[:,3*(i*n_nodes+j):3*(i*n_nodes+j+1)] = edge.get_e()
+        return err
 
     def solve(self):
         jaco = self.compute_jaco()

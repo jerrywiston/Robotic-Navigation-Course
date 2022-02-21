@@ -55,12 +55,13 @@ if __name__ == "__main__":
     pts_align = utils.EndPoint((0,0,0), lidar_params, sdata2, True)
     pts_align = np.array(pts_align)
     start = time.time()
-    R, T = icp.IcpSolve(30, pts_origin, pts_align)
+    R, T, error = icp.IcpSolve(30, pts_origin, pts_align)
     end = time.time()
     print(end-start)
     print(R,T)
     print(simulator.state)
-    
+    print("Error:", error)
+
     pts_align_trans = utils.Transform(pts_align, R, T)
     plt.figure()
     plt.axis("equal")

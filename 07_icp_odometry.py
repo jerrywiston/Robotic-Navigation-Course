@@ -66,7 +66,7 @@ def run_odometry(m):
             pose_hist.append(pose)
 
             # ICP
-            icp_tracking.add_observation(pts, count*simulator.dt)
+            error = icp_tracking.add_observation(pts, count*simulator.dt)
 
         # Draw Estimate Path
         odo_hist = icp_tracking.odometry_history

@@ -45,8 +45,13 @@ def IcpSolve_scipy(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
 
         Rtot = np.matmul(R,Rtot)
         Ttot = T + np.matmul(R,Ttot)
+    
+    Pc = utils.Transform(pc_match, Rtot, Ttot)
+    Xc = X[tree.query(Pc, k=1)[1]].reshape(Pc.shape)
+    error = Xc - Pc
+    error = np.sum((error * error),1)
 
-    return Rtot, Ttot
+    return Rtot, Ttot, error
 
 def IcpSolve(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
     # X = R * P + T
@@ -69,7 +74,13 @@ def IcpSolve(iter, X, P, Rtot=np.eye(2), Ttot=np.zeros((2))):
         Rtot = np.matmul(R,Rtot)
         Ttot = T + np.matmul(R,Ttot)
 
-    return Rtot, Ttot
+    Pc = utils.Transform(pc_match.astype(np.float32), Rtot, Ttot).astype(np.float32)
+    ret, results, neighbours, dist = knn.findNearest(Pc, 1)
+    Xc = X[results[:,0].astype(np.int)].squeeze()
+    error = Xc - Pc
+    error = np.mean(np.sqrt(np.sum((error * error),1)))
+
+    return Rtot, Ttot, error
 
 class Icp2dTracking:
     def __init__(self, iteration=30):
@@ -85,7 +96,7 @@ class Icp2dTracking:
     
     def add_observation(self, observation, timestamp=None):
         self.observation_history.append(observation)
-        R_pc, T_pc = IcpSolve(self.iteration, observation, self.observation_history[self.step_count])
+        R_pc, T_pc, error = IcpSolve(self.iteration, observation, self.observation_history[self.step_count])
         R, T = np.transpose(R_pc), -T_pc
         self.rotation, self.translation = utils.TransformRT(R, T, self.rotation, self.translation)
         pose_est = (
@@ -99,3 +110,4 @@ class Icp2dTracking:
         else:
             self.timestamp_history.append(timestamp)
         self.step_count += 1
+        return error
