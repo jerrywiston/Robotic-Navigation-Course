@@ -7,15 +7,28 @@ import PathTracking.utils
 if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--simulator", type=str, default="diff_drive", help="diff_drive/bicycle")
+    parser.add_argument("-s", "--simulator", type=str, default="diff_drive", help="basic/diff_drive/bicycle")
     parser.add_argument("-c", "--controller", type=str, default="pure_pursuit", help="pid/pure_pursuit/stanley/lqr")
     parser.add_argument("-t", "--path_type", type=int, default=2, help="1/2")
     args = parser.parse_args()
 
     # Select Simulator and Controller
     try:
-        # Basic Kinematic Model & Differential Drive Kinematic Model
-        if args.simulator == "diff_drive":
+        # Basic Kinematic Model 
+        if args.simulator == "basic":
+            from Simulation.simulator_basic import SimulatorBasic as Simulator
+            if args.controller == "pid":
+                from PathTracking.controller_pid_basic import ControllerPIDBasic as Controller
+            elif args.controller == "pure_pursuit":
+                from PathTracking.controller_pure_pursuit_basic import ControllerPurePursuitBasic as Controller
+            elif args.controller == "stanley":
+                from PathTracking.controller_stanley_basic import ControllerStanleyBasic as Controller
+            elif args.controller == "lqr":
+                from PathTracking.controller_lqr_basic import ControllerLQRBasic as Controller
+            else:
+                raise NameError("Unknown controller!!")
+        # Differential Drive Kinematic Model
+        elif args.simulator == "diff_drive":
             from Simulation.simulator_differential_drive import SimulatorDifferentialDrive as Simulator
             if args.controller == "pid":
                 from PathTracking.controller_pid_basic import ControllerPIDBasic as Controller
@@ -73,7 +86,22 @@ if __name__ == "__main__":
         print("\r", simulator, end="\t")
         # Control
         end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
-        if args.simulator == "diff_drive":
+        if args.simulator == "basic":
+            if end_dist > 10:
+                next_v = 20
+            else:
+                next_v = 0
+            # Lateral
+            info = {
+                "x":simulator.state.x, 
+                "y":simulator.state.y, 
+                "yaw":simulator.state.yaw, 
+                "v":simulator.state.v, 
+                "dt":simulator.dt
+            }
+            next_w, target = controller.feedback(info)
+            command = ControlState("basic", next_v, next_w)
+        elif args.simulator == "diff_drive":
             # Longitude
             if end_dist > 10:
                 next_v = 20
