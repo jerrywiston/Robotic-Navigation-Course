@@ -152,7 +152,7 @@ if __name__ == "__main__":
         cv2.imshow("Path Tracking Test", img)
         k = cv2.waitKey(1)
         if k == ord('r'):
-            simulator.init_state(start)
+            simulator.init_pose(start)
         if k == 27:
             print()
             break
