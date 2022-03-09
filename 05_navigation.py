@@ -72,7 +72,22 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
 
         if path is not None and collision_count == 0:
             end_dist = np.hypot(path[-1,0]-simulator.state.x, path[-1,1]-simulator.state.y)
-            if args.simulator == "diff_drive":
+            if args.simulator == "basic":
+                # Longitude
+                if end_dist > 5:
+                    next_v = 20
+                else:
+                    next_v = 0
+                target_v = 20 if end_dist > 25 else 0
+                kp = 1.5
+                next_a = kp*(target_v - simulator.state.v)
+                next_v = simulator.state.v + next_a*0.1
+                # Lateral
+                info = {"x":simulator.state.x, "y":simulator.state.y, "yaw":simulator.state.yaw, "v":simulator.state.v, "dt":simulator.dt}
+                next_w, target = controller.feedback(info)
+                # v,w to motor control
+                command = ControlState("basic", next_v, next_w)
+            elif args.simulator == "diff_drive":
                 # Longitude
                 if end_dist > 5:
                     next_v = 20
@@ -159,10 +174,25 @@ if __name__ == "__main__":
     # Select Simulator, Controller, and Planner
     try:
         # Simulator / Controller
-        if args.simulator == "diff_drive":
+        if args.simulator == "basic":
+            from Simulation.simulator_basic import SimulatorBasic
+            simulator = SimulatorMap(SimulatorBasic, m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
+            if args.controller == "pid":
+                from PathTracking.controller_pid_basic import ControllerPIDBasic as Controller
+                controller = Controller()
+            elif args.controller == "pure_pursuit":
+                from PathTracking.controller_pure_pursuit_basic import ControllerPurePursuitBasic as Controller
+                controller = Controller(Lfc=1)
+            elif args.controller == "stanley":
+                from PathTracking.controller_stanley_basic import ControllerStanleyBasic as Controller
+                controller = Controller()
+            elif args.controller == "lqr":
+                from PathTracking.controller_lqr_basic import ControllerLQRBasic as Controller
+                controller = Controller()
+            else:
+                raise NameError("Unknown controller!!")
+        elif args.simulator == "diff_drive":
             from Simulation.simulator_differential_drive import SimulatorDifferentialDrive
-            #Simulator = SimulatorMap(SimulatorDifferentialDrive)
-            #simulator = Simulator(m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
             simulator = SimulatorMap(SimulatorDifferentialDrive, m=m, l=9, wu=7, wv=3, car_w=16, car_f=13, car_r=7)
             if args.controller == "pid":
                 from PathTracking.controller_pid_basic import ControllerPIDBasic as Controller
@@ -180,8 +210,6 @@ if __name__ == "__main__":
                 raise NameError("Unknown controller!!")
         elif args.simulator == "bicycle":
             from Simulation.simulator_bicycle import SimulatorBicycle 
-            #Simulator = SimulatorMap(SimulatorBicycle)
-            #simulator = Simulator(m=m, l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
             simulator = SimulatorMap(SimulatorBicycle, m=m, l=20, d=5, wu=5, wv=2, car_w=14, car_f=25, car_r=5)
             if args.controller == "pid":
                 from PathTracking.controller_pid_bicycle import ControllerPIDBicycle as Controller
