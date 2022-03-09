@@ -122,7 +122,9 @@ def navigation(args, simulator, controller, planner, start_pose=(100,200,0)):
         if info["collision"]:
             collision_count = 1
         if collision_count > 0:
-            if args.simulator == "diff_drive":
+            if args.simulator == "basic":
+                simulator.step(ControlState("basic", -10, 0))
+            elif args.simulator == "diff_drive":
                 next_lw, next_rw = vw2motor(simulator.wu, simulator.l, -10, 0)
                 simulator.step(ControlState("diff_drive", next_lw, next_rw))
             elif args.simulator == "bicycle":
