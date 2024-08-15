@@ -7,7 +7,7 @@ def pos_int(p):
 def cubic_spline(x,y,interval=2):
     size = len(y)
     h = [x[i+1]-x[i] for i in range(len(x)-1)]
-    A = np.zeros((size, size), dtype=np.float)
+    A = np.zeros((size, size), dtype=float)
     for i in range(size):
         if i==0:
             A[i,0] = 1
@@ -25,7 +25,7 @@ def cubic_spline(x,y,interval=2):
             A[i,i+1] = h[i]
     #print(A)
 
-    B = np.zeros((size,1), dtype=np.float)
+    B = np.zeros((size,1), dtype=float)
     for i in range(1,size-1):
         B[i,0] = (y[i+1]-y[i])/h[i] - (y[i]-y[i-1])/h[i-1]
     B = 6*B
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     path = [(20,50), (40,100), (80,120), (160,60)]
     path_smooth = cubic_spline_2d(path)
 
-    img = np.ones((200,200,3), dtype=np.float)
+    img = np.ones((200,200,3), dtype=float)
     for p in path:
         cv2.circle(img, p, 3, (0.5,0.5,0.5), 2)
 

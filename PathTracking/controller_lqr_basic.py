@@ -58,19 +58,19 @@ class ControllerLQRBasic(Controller):
             [1, dt,  0,  0],
             [0,  0,  v,  0],
             [0,  0,  1, dt],
-            [0,  0,  0,  0]], dtype=np.float)
+            [0,  0,  0,  0]], dtype=float)
         
         B = np.array([
             [  0],
             [  0],
             [  0],
-            [  1]], dtype=np.float)
+            [  1]], dtype=float)
         
         X = np.array([
             [ e],
             [ (e - self.pe) / dt],
             [ th_e],
-            [ (th_e - self.pth_e) / dt]], dtype=np.float)
+            [ (th_e - self.pth_e) / dt]], dtype=float)
         
         self.pe = e.copy()
         self.pth_e = th_e.copy()
